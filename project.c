@@ -219,7 +219,10 @@ int get_instructions(BIT Instructions[][32])
 {
   char line[256] = {0};
   int instruction_count = 0;
-  while (fgets(line, 256, stdin) != NULL) {        
+  int num = 0;
+  while (fgets(line, 256, stdin) != NULL) {     
+    sscanf(line, "%d", &num);
+
     // TODO: perform conversion of instructions to binary
     // Input: coming from stdin via: ./a.out < input.txt
     // Output: Convert instructions to binary in the instruction memory
