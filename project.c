@@ -175,31 +175,51 @@ BIT multiplexor4(BIT S0, BIT S1, BIT I0, BIT I1, BIT I2, BIT I3)
 /******************************************************************************/
 void copy_bits(BIT* A, BIT* B)
 {
+  /*copy the bit sequence of A unto B*/
   for (int i = 0; i < 32; ++i)
     B[i] = A[i]; 
 }
 
-void print_binary(BIT* A)
+void print_binary(BIT* A) //expecting length of 32
 {
   for (int i = 31; i >= 0; --i)
     printf("%d", A[i]); 
 }
 
+void print_binary_general(BIT* A, int length) //expecting any length, should be 1 less than the actual
+{
+  for (int i = length; i >= 0; --i)
+    printf("%d", A[i]); 
+}
+
 void convert_to_binary(int a, BIT* A, int length)
 {
-  /* Use your implementation from Lab 6 */
+  /* convert INTEGER to BIT REPRESENTATION of the given length (in 2's complement) */
+  if (a >= 0) {
+    for (int i = 0; i < length; ++i) {
+      A[i] = (a % 2 == 1 ? TRUE : FALSE);
+      a /= 2;
+    }
+  } 
+  else {
+    a += 1;
+    for (int i = 0; i < length; ++i) {
+      A[i] = (a % 2 == 0 ? TRUE : FALSE);
+      a /= 2;
+    }
+  }
 }
 
 void convert_to_binary_char(int a, char* A, int length)
 {
-  /* Use your implementation from Lab 6 */
-
-    if (a >= 0) {
+  /* convert INTEGER to BINARY STRING REPRESENTATION of the given length (in 2's complement)*/
+  if (a >= 0) {
     for (int i = 0; i < length; ++i) {
       A[i] = (a % 2 == 1 ? '1' : '0');
       a /= 2;
     }
-  } else {
+  } 
+  else {
     a += 1;
     for (int i = 0; i < length; ++i) {
       A[i] = (a % 2 == 0 ? '1' : '0');
@@ -232,7 +252,76 @@ int get_instructions(BIT Instructions[][32])
 {
   char line[256] = {0};
   int instruction_count = 0;
-  while (fgets(line, 256, stdin) != NULL) {        
+  char instruction[5]; 
+  char reg1[3];  
+  char reg2[3];
+  char reg3[3];
+  int offset; 
+  int constant;
+  char address[26];
+  BIT opcode[6] = {0};
+
+  while (fgets(line, 256, stdin) != NULL) {     
+    sscanf(line, "%s", instruction);
+    printf("%s\n",instruction);
+
+    //OPCODE STUFF
+    if (!strcmp(instruction, "add") || !strcmp(instruction, "and") || !strcmp(instruction, "or") || !strcmp(instruction, "slt") || !strcmp(instruction, "sub")){
+      sscanf(line, "%s %s %s %s", instruction, reg1, reg2, reg3);
+      printf("%s\n",reg3);
+      
+      convert_to_binary(0, opcode, 6);
+    }
+
+    else if (!strcmp(instruction, "lw")){
+      sscanf(line, "%s %s %s %d", instruction, reg1, reg2, &offset);
+      printf("%d\n",offset);
+
+      convert_to_binary(35, opcode, 6);
+    }
+
+    else if (!strcmp(instruction, "sw")){
+      sscanf(line, "%s %s %s %d", instruction, reg1, reg2, &offset);
+      printf("%d\n",offset);
+
+      convert_to_binary(43, opcode, 6);
+    }
+
+    else if (!strcmp(instruction, "beq")){
+      sscanf(line, "%s %s %s %d", instruction, reg1, reg2, &offset);
+      printf("%d\n",offset);
+
+      convert_to_binary(4, opcode, 6);
+    }
+
+    else if (!strcmp(instruction, "addi")){
+      sscanf(line, "%s %s %s %d", instruction, reg1, reg2, &constant);
+      printf("%d\n",constant);
+
+      convert_to_binary(8, opcode, 6);
+    }  
+  
+    else if (!strcmp(instruction, "j")){
+      sscanf(line, "%s %s", instruction, address);
+      printf("%s\n",address);
+
+      convert_to_binary(2, opcode, 6);
+    }
+  
+    else if (!strcmp(instruction, "jal")){
+      sscanf(line, "%s %s", instruction, address);
+      printf("%s\n",address);
+
+      convert_to_binary(3, opcode, 6);
+    }  
+
+    else if (!strcmp(instruction, "jr")){
+      sscanf(line, "%s %s", instruction, reg1);
+      printf("%s\n",reg1);
+
+      convert_to_binary(0, opcode, 6);
+    }
+
     // TODO: perform conversion of instructions to binary
     // Input: coming from stdin via: ./a.out < input.txt
     // Output: Convert instructions to binary in the instruction memory
@@ -403,6 +492,7 @@ int main()
   // parse instructions into binary format
   int counter = get_instructions(MEM_Instruction);
   
+  /*
   // load program and run
   copy_bits(ZERO, PC);
   copy_bits(THIRTY_TWO, MEM_Register[29]);
@@ -412,6 +502,7 @@ int main()
     updateState();
     print_state();
   }
+  */
 
   return 0;
 }
