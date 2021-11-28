@@ -51,6 +51,7 @@ BIT multiplexor4(BIT S0, BIT S1, BIT I0, BIT I1, BIT I2, BIT I3);
 
 void copy_bits(BIT* A, BIT* B);
 void print_binary(BIT* A);
+void print_binary_general(BIT* A, int length);
 void convert_to_binary(int a, BIT* A, int length);
 void convert_to_binary_char(int a, char* A, int length);
 int binary_to_integer(BIT* A);
@@ -245,82 +246,303 @@ int binary_to_integer(BIT* A)
 /******************************************************************************/
 /* Parsing functions */
 /******************************************************************************/
+void register_map(char* register_name, BIT register_field[][5]){
+  if (!strcmp(register_name, "t0")){
+    convert_to_binary(8, *register_field, 5); 
+  }
+  else if (!strcmp(register_name, "s0")){
+    convert_to_binary(16, *register_field, 5); 
+  }
+  else if (!strcmp(register_name, "zero")){
+    convert_to_binary(0, *register_field, 5); 
+  }  
+  else if (!strcmp(register_name, "v0")){
+    convert_to_binary(2, *register_field, 5); 
+  }  
+  else if (!strcmp(register_name, "a0")){
+    convert_to_binary(4, *register_field, 5); 
+  }  
+  else if (!strcmp(register_name, "t1")){
+    convert_to_binary(9, *register_field, 5); 
+  }  
+  else if (!strcmp(register_name, "s1")){
+    convert_to_binary(17, *register_field, 5); 
+  }  
+  else if (!strcmp(register_name, "sp")){
+    convert_to_binary(29, *register_field, 5); 
+  }  
+  else if (!strcmp(register_name, "ra")){
+    convert_to_binary(31, *register_field, 5); 
+  }  
+}
 
-// TODO: Implement any helper functions to assist with parsing
+void add_convert(char* input_line, BIT Instructions[32]){
+  char reg1[3];  
+  char reg2[3];
+  char reg3[3];
+  char instruction[5]; 
+  BIT opcode[6] = {0};
+  BIT funct[5] = {0};  
+  BIT shamt[5] = {0};  
+  BIT rd[5] = {0};  
+  BIT rs[5] = {0};  
+  BIT rt[5] = {0}; 
+  int i; 
+  int j;
+  sscanf(input_line, "%s %s %s %s", instruction, reg1, reg2, reg3);
+  
+  convert_to_binary(0, opcode, 6);  //opcode
+  for (j = 26, i = 0; j < 32; j++,i++){
+    Instructions[j] = opcode[i];
+  }
+
+  convert_to_binary(32, funct, 6);  //funct
+  for (j = 0, i = 0; j < 6; j++,i++){
+    Instructions[j] = funct[i];
+  }     
+
+  convert_to_binary(0, shamt, 5);   //shamt
+  for (j = 6, i = 0; j < 11; j++,i++){
+    Instructions[i] = shamt[i];
+  } 
+
+  //reg1 is essentially rd, reg2 is essentially rs, reg3 is essentially rt
+  register_map(reg1, &rd);
+  for (j = 11, i = 0; j < 16; j++,i++){
+    Instructions[j] = rd[i];
+  }
+
+  register_map(reg2, &rs);
+  for (j = 21, i = 0; j < 26; j++,i++){
+    Instructions[j] = rs[i];
+  }   
+
+  register_map(reg3, &rt);
+  for (j = 16, i = 0; j < 21; j++,i++){
+    Instructions[j] = rt[i];
+  }  
+}
+
+void or_convert(char* input_line, BIT Instructions[32]){
+  char reg1[3];  
+  char reg2[3];
+  char reg3[3];
+  char instruction[5]; 
+  BIT opcode[6] = {0};
+  BIT funct[5] = {0};  
+  BIT shamt[5] = {0};  
+  BIT rd[5] = {0};  
+  BIT rs[5] = {0};  
+  BIT rt[5] = {0}; 
+  int i; 
+  int j;
+  sscanf(input_line, "%s %s %s %s", instruction, reg1, reg2, reg3);
+  
+  convert_to_binary(0, opcode, 6);  //opcode
+  for (j = 26, i = 0; j < 32; j++,i++){
+    Instructions[j] = opcode[i];
+  }
+
+  convert_to_binary(37, funct, 6);  //funct
+  for (j = 0, i = 0; j < 6; j++,i++){
+    Instructions[j] = funct[i];
+  }     
+
+  convert_to_binary(0, shamt, 5);   //shamt
+  for (j = 6, i = 0; j < 11; j++,i++){
+    Instructions[i] = shamt[i];
+  } 
+
+  //reg1 is essentially rd, reg2 is essentially rs, reg3 is essentially rt
+  register_map(reg1, &rd);
+  for (j = 11, i = 0; j < 16; j++,i++){
+    Instructions[j] = rd[i];
+  }
+
+  register_map(reg2, &rs);
+  for (j = 21, i = 0; j < 26; j++,i++){
+    Instructions[j] = rs[i];
+  }   
+
+  register_map(reg3, &rt);
+  for (j = 16, i = 0; j < 21; j++,i++){
+    Instructions[j] = rt[i];
+  }  
+}
+
+void and_convert(char* input_line, BIT Instructions[32]){
+  char reg1[3];  
+  char reg2[3];
+  char reg3[3];
+  char instruction[5]; 
+  BIT opcode[6] = {0};
+  BIT funct[5] = {0};  
+  BIT shamt[5] = {0};  
+  BIT rd[5] = {0};  
+  BIT rs[5] = {0};  
+  BIT rt[5] = {0}; 
+  int i; 
+  int j;
+  sscanf(input_line, "%s %s %s %s", instruction, reg1, reg2, reg3);
+  
+  convert_to_binary(0, opcode, 6);  //opcode
+  for (j = 26, i = 0; j < 32; j++,i++){
+    Instructions[j] = opcode[i];
+  }
+
+  convert_to_binary(36, funct, 6);  //funct
+  for (j = 0, i = 0; j < 6; j++,i++){
+    Instructions[j] = funct[i];
+  }     
+
+  convert_to_binary(0, shamt, 5);   //shamt
+  for (j = 6, i = 0; j < 11; j++,i++){
+    Instructions[i] = shamt[i];
+  } 
+
+  //reg1 is essentially rd, reg2 is essentially rs, reg3 is essentially rt
+  register_map(reg1, &rd);
+  for (j = 11, i = 0; j < 16; j++,i++){
+    Instructions[j] = rd[i];
+  }
+
+  register_map(reg2, &rs);
+  for (j = 21, i = 0; j < 26; j++,i++){
+    Instructions[j] = rs[i];
+  }   
+
+  register_map(reg3, &rt);
+  for (j = 16, i = 0; j < 21; j++,i++){
+    Instructions[j] = rt[i];
+  }  
+}
+
+void sub_convert(char* input_line, BIT Instructions[32]){
+  char reg1[3];  
+  char reg2[3];
+  char reg3[3];
+  char instruction[5]; 
+  BIT opcode[6] = {0};
+  BIT funct[5] = {0};  
+  BIT shamt[5] = {0};  
+  BIT rd[5] = {0};  
+  BIT rs[5] = {0};  
+  BIT rt[5] = {0}; 
+  int i; 
+  int j;
+  sscanf(input_line, "%s %s %s %s", instruction, reg1, reg2, reg3);
+  
+  convert_to_binary(0, opcode, 6);  //opcode
+  for (j = 26, i = 0; j < 32; j++,i++){
+    Instructions[j] = opcode[i];
+  }
+
+  convert_to_binary(34, funct, 6);  //funct
+  for (j = 0, i = 0; j < 6; j++,i++){
+    Instructions[j] = funct[i];
+  }     
+
+  convert_to_binary(0, shamt, 5);   //shamt
+  for (j = 6, i = 0; j < 11; j++,i++){
+    Instructions[i] = shamt[i];
+  } 
+
+  //reg1 is essentially rd, reg2 is essentially rs, reg3 is essentially rt
+  register_map(reg1, &rd);
+  for (j = 11, i = 0; j < 16; j++,i++){
+    Instructions[j] = rd[i];
+  }
+
+  register_map(reg2, &rs);
+  for (j = 21, i = 0; j < 26; j++,i++){
+    Instructions[j] = rs[i];
+  }   
+
+  register_map(reg3, &rt);
+  for (j = 16, i = 0; j < 21; j++,i++){
+    Instructions[j] = rt[i];
+  }  
+}
+
+void slt_convert(char* input_line, BIT Instructions[32]){
+  char reg1[3];  
+  char reg2[3];
+  char reg3[3];
+  char instruction[5]; 
+  BIT opcode[6] = {0};
+  BIT funct[5] = {0};  
+  BIT shamt[5] = {0};  
+  BIT rd[5] = {0};  
+  BIT rs[5] = {0};  
+  BIT rt[5] = {0}; 
+  int i; 
+  int j;
+  sscanf(input_line, "%s %s %s %s", instruction, reg1, reg2, reg3);
+  
+  convert_to_binary(0, opcode, 6);  //opcode
+  for (j = 26, i = 0; j < 32; j++,i++){
+    Instructions[j] = opcode[i];
+  }
+
+  convert_to_binary(42, funct, 6);  //funct
+  for (j = 0, i = 0; j < 6; j++,i++){
+    Instructions[j] = funct[i];
+  }     
+
+  convert_to_binary(0, shamt, 5);   //shamt
+  for (j = 6, i = 0; j < 11; j++,i++){
+    Instructions[i] = shamt[i];
+  } 
+
+  //reg1 is essentially rd, reg2 is essentially rs, reg3 is essentially rt
+  register_map(reg1, &rd);
+  for (j = 11, i = 0; j < 16; j++,i++){
+    Instructions[j] = rd[i];
+  }
+
+  register_map(reg2, &rs);
+  for (j = 21, i = 0; j < 26; j++,i++){
+    Instructions[j] = rs[i];
+  }   
+
+  register_map(reg3, &rt);
+  for (j = 16, i = 0; j < 21; j++,i++){
+    Instructions[j] = rt[i];
+  }  
+}
 
 int get_instructions(BIT Instructions[][32])
 {
   char line[256] = {0};
   int instruction_count = 0;
   char instruction[5]; 
-  char reg1[3];  
-  char reg2[3];
-  char reg3[3];
   int offset; 
   int constant;
   char address[26];
-  BIT opcode[6] = {0};
 
   while (fgets(line, 256, stdin) != NULL) {     
     sscanf(line, "%s", instruction);
-    printf("%s\n",instruction);
 
-    //OPCODE STUFF
-    if (!strcmp(instruction, "add") || !strcmp(instruction, "and") || !strcmp(instruction, "or") || !strcmp(instruction, "slt") || !strcmp(instruction, "sub")){
-      sscanf(line, "%s %s %s %s", instruction, reg1, reg2, reg3);
-      printf("%s\n",reg3);
-      
-      convert_to_binary(0, opcode, 6);
+    if (!strcmp(instruction, "add") ){
+      add_convert(line, Instructions[instruction_count]);     
+      instruction_count++;  
     }
-
-    else if (!strcmp(instruction, "lw")){
-      sscanf(line, "%s %s %s %d", instruction, reg1, reg2, &offset);
-      printf("%d\n",offset);
-
-      convert_to_binary(35, opcode, 6);
+    else if (!strcmp(instruction, "or") ){
+      or_convert(line, Instructions[instruction_count]);   
+      instruction_count++;      
     }
-
-    else if (!strcmp(instruction, "sw")){
-      sscanf(line, "%s %s %s %d", instruction, reg1, reg2, &offset);
-      printf("%d\n",offset);
-
-      convert_to_binary(43, opcode, 6);
-    }
-
-    else if (!strcmp(instruction, "beq")){
-      sscanf(line, "%s %s %s %d", instruction, reg1, reg2, &offset);
-      printf("%d\n",offset);
-
-      convert_to_binary(4, opcode, 6);
-    }
-
-    else if (!strcmp(instruction, "addi")){
-      sscanf(line, "%s %s %s %d", instruction, reg1, reg2, &constant);
-      printf("%d\n",constant);
-
-      convert_to_binary(8, opcode, 6);
-    }  
-  
-    else if (!strcmp(instruction, "j")){
-      sscanf(line, "%s %s", instruction, address);
-      printf("%s\n",address);
-
-      convert_to_binary(2, opcode, 6);
-    }
-  
-    else if (!strcmp(instruction, "jal")){
-      sscanf(line, "%s %s", instruction, address);
-      printf("%s\n",address);
-
-      convert_to_binary(3, opcode, 6);
-    }  
-
-    else if (!strcmp(instruction, "jr")){
-      sscanf(line, "%s %s", instruction, reg1);
-      printf("%s\n",reg1);
-
-      convert_to_binary(0, opcode, 6);
-    }
+    else if (!strcmp(instruction, "and") ){
+      and_convert(line, Instructions[instruction_count]);   
+      instruction_count++;     
+    }   
+    else if (!strcmp(instruction, "sub") ){
+      sub_convert(line, Instructions[instruction_count]);   
+      instruction_count++;      
+    }   
+    else if (!strcmp(instruction, "slt") ){
+      slt_convert(line, Instructions[instruction_count]);   
+      instruction_count++;     
+    }      
 
     // TODO: perform conversion of instructions to binary
     // Input: coming from stdin via: ./a.out < input.txt
@@ -334,7 +556,6 @@ int get_instructions(BIT Instructions[][32])
     // - Convert immediate field and jump address field to binary
     // - Use registers to get rt, rd, rs fields
     // Note: I parse everything as strings, then convert to BIT array at end
-  
   }
   
   return instruction_count;
@@ -491,7 +712,7 @@ int main()
     
   // parse instructions into binary format
   int counter = get_instructions(MEM_Instruction);
-  
+
   /*
   // load program and run
   copy_bits(ZERO, PC);
