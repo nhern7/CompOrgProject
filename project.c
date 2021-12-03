@@ -276,6 +276,146 @@ void register_map(char* register_name, BIT register_field[][5]){
   }  
 }
 
+void hex_to_binary_string(char* address, char address_to_write_to[32]){
+  int i;
+  int j = 31;
+  for (i = 0; i < strlen(address); i++){
+    if (address[i] == '0'){
+      address_to_write_to[j] = '0';
+      address_to_write_to[j-1] = '0';
+      address_to_write_to[j-2] = '0';
+      address_to_write_to[j-3] = '0';
+      j -= 4;
+    }
+    else if (address[i] == '1'){
+      address_to_write_to[j] = '0';
+      address_to_write_to[j-1] = '0';
+      address_to_write_to[j-2] = '0';
+      address_to_write_to[j-3] = '1';
+      j -= 4;
+    }
+    else if (address[i] == '1'){
+      address_to_write_to[j] = '0';
+      address_to_write_to[j-1] = '0';
+      address_to_write_to[j-2] = '0';
+      address_to_write_to[j-3] = '1';
+      j -= 4;
+    }    
+    else if (address[i] == '2'){
+      address_to_write_to[j] = '0';
+      address_to_write_to[j-1] = '0';
+      address_to_write_to[j-2] = '1';
+      address_to_write_to[j-3] = '0';
+      j -= 4;
+    }    
+    else if (address[i] == '3'){
+      address_to_write_to[j] = '0';
+      address_to_write_to[j-1] = '0';
+      address_to_write_to[j-2] = '1';
+      address_to_write_to[j-3] = '1';
+      j -= 4;
+    }    
+    else if (address[i] == '4'){
+      address_to_write_to[j] = '0';
+      address_to_write_to[j-1] = '1';
+      address_to_write_to[j-2] = '0';
+      address_to_write_to[j-3] = '0';
+      j -= 4;
+    }    
+    else if (address[i] == '5'){
+      address_to_write_to[j] = '0';
+      address_to_write_to[j-1] = '1';
+      address_to_write_to[j-2] = '0';
+      address_to_write_to[j-3] = '1';
+      j -= 4;
+    }    
+    else if (address[i] == '6'){
+      address_to_write_to[j] = '0';
+      address_to_write_to[j-1] = '1';
+      address_to_write_to[j-2] = '1';
+      address_to_write_to[j-3] = '0';
+      j -= 4;
+    }   
+    else if (address[i] == '7'){
+      address_to_write_to[j] = '0';
+      address_to_write_to[j-1] = '1';
+      address_to_write_to[j-2] = '1';
+      address_to_write_to[j-3] = '1';
+      j -= 4;
+    }     
+    else if (address[i] == '8'){
+      address_to_write_to[j] = '1';
+      address_to_write_to[j-1] = '0';
+      address_to_write_to[j-2] = '0';
+      address_to_write_to[j-3] = '0';
+      j -= 4;
+    }   
+    else if (address[i] == '9'){
+      address_to_write_to[j] = '1';
+      address_to_write_to[j-1] = '0';
+      address_to_write_to[j-2] = '0';
+      address_to_write_to[j-3] = '1';
+      j -= 4;
+    }     
+    else if (address[i] == 'a'){
+      address_to_write_to[j] = '1';
+      address_to_write_to[j-1] = '0';
+      address_to_write_to[j-2] = '1';
+      address_to_write_to[j-3] = '0';
+      j -= 4;
+    }    
+    else if (address[i] == 'b'){
+      address_to_write_to[j] = '1';
+      address_to_write_to[j-1] = '0';
+      address_to_write_to[j-2] = '1';
+      address_to_write_to[j-3] = '1';
+      j -= 4;
+    }       
+    else if (address[i] == 'c'){
+      address_to_write_to[j] = '1';
+      address_to_write_to[j-1] = '1';
+      address_to_write_to[j-2] = '0';
+      address_to_write_to[j-3] = '0';
+      j -= 4;
+    }
+    else if (address[i] == 'd'){
+      address_to_write_to[j] = '1';
+      address_to_write_to[j-1] = '1';
+      address_to_write_to[j-2] = '0';
+      address_to_write_to[j-3] = '1';
+      j -= 4;
+    }  
+    else if (address[i] == 'e'){
+      address_to_write_to[j] = '1';
+      address_to_write_to[j-1] = '1';
+      address_to_write_to[j-2] = '1';
+      address_to_write_to[j-3] = '0';
+      j -= 4;
+    }         
+    else if (address[i] == 'f'){
+      address_to_write_to[j] = '1';
+      address_to_write_to[j-1] = '1';
+      address_to_write_to[j-2] = '1';
+      address_to_write_to[j-3] = '1';
+      j -= 4;
+    }                 
+  }
+}
+
+void string_splice(char* source, int start_pos, int end_pos, char* destination){
+  int i;
+  int j;
+  for (j = 0, i = start_pos; i < end_pos; i++, j++){
+    destination[j] = source[i];
+  }
+}
+
+void address_getter(char* address_string, char* address_reformed){
+  char address_bin[33] = {0};
+  hex_to_binary_string(address_string, address_bin);  //convert address_string from hex (string) to binary string
+  string_splice(address_bin, 2, 28, address_reformed);  //extract the string from index 28 to 2
+}
+
 void add_convert(char* input_line, BIT Instructions[32]){
   char reg1[3];  
   char reg2[3];
@@ -650,14 +790,111 @@ void beq_convert(char* input_line, BIT Instructions[32]){
   }  
 }
 
+void j_convert(char* input_line, BIT Instructions[32]){
+  char instruction[5];   
+  char address_string[27];
+  char address_bin_spliced[26] = {'\0'};
+  BIT opcode[6] = {0};
+  BIT address[26] = {0}; 
+  int i; 
+  int j;
+  sscanf(input_line, "%s %s", instruction, address_string);
+  
+  convert_to_binary(2, opcode, 6);  //opcode
+  for (j = 26, i = 0; j < 32; j++,i++){
+    Instructions[j] = opcode[i];
+  }  
+
+  address_getter(address_string, address_bin_spliced);  //address
+  for (i = 0; i < 26; i++){
+    if (address_bin_spliced[i] == '0'){
+      address[i] = FALSE;
+    }
+    else if (address_bin_spliced[i] == '1'){
+      address[i] = TRUE;  
+    }
+  }
+  
+  for (j = 0, i = 0; j < 26; j++,i++){ 
+    Instructions[j] = address[i];
+  }      
+}
+
+void jal_convert(char* input_line, BIT Instructions[32]){
+  char instruction[5];   
+  char address_string[27];
+  char address_bin_spliced[26] = {'\0'};
+  BIT opcode[6] = {0};
+  BIT address[26] = {0}; 
+  int i; 
+  int j;
+  sscanf(input_line, "%s %s", instruction, address_string);
+  
+  convert_to_binary(3, opcode, 6);  //opcode
+  for (j = 26, i = 0; j < 32; j++,i++){
+    Instructions[j] = opcode[i];
+  }  
+
+  address_getter(address_string, address_bin_spliced);  //address
+  for (i = 0; i < 26; i++){
+    if (address_bin_spliced[i] == '0'){
+      address[i] = FALSE;
+    }
+    else if (address_bin_spliced[i] == '1'){
+      address[i] = TRUE;  
+    }
+  }
+  
+  for (j = 0, i = 0; j < 26; j++,i++){ 
+    Instructions[j] = address[i];
+  }      
+}
+
+void jr_convert(char* input_line, BIT Instructions[32]){
+  char reg1[3];  
+  char instruction[5]; 
+  BIT opcode[6] = {0};
+  BIT funct[5] = {0};  
+  BIT rs[5] = {0};   
+  int i; 
+  int j;
+  sscanf(input_line, "%s %s", instruction, reg1);
+  
+  convert_to_binary(0, opcode, 6);  //opcode
+  for (j = 26, i = 0; j < 32; j++,i++){
+    Instructions[j] = opcode[i];
+  }
+
+  convert_to_binary(8, funct, 6);  //funct
+  for (j = 0, i = 0; j < 6; j++,i++){
+    Instructions[j] = funct[i];
+  }       
+
+  for (j = 6, i = 0; j < 11; j++,i++){
+    Instructions[j] = FALSE;  
+  } 
+
+  //reg1 is essentially rs
+  register_map(reg1, &rs);
+  for (j = 21, i = 0; j < 26; j++,i++){
+    Instructions[j] = rs[i];
+  }   
+
+  for (j = 11, i = 0; j < 16; j++,i++){
+    Instructions[j] = FALSE;
+  }
+
+  for (j = 16, i = 0; j < 21; j++,i++){
+    Instructions[j] = FALSE;
+  }  
+    
+}
+
 int get_instructions(BIT Instructions[][32])
 {
   char line[256] = {0};
   int instruction_count = 0;
   char instruction[5]; 
-  int offset; 
-  int constant;
-  char address[26];
 
   while (fgets(line, 256, stdin) != NULL) {     
     sscanf(line, "%s", instruction);
@@ -695,11 +932,21 @@ int get_instructions(BIT Instructions[][32])
       instruction_count++;
     }        
     else if (!strcmp(instruction, "beq") ){
-      beq_convert(line, Instructions[instruction_count]);
-      print_binary(Instructions[instruction_count]);    
-      printf("\n");         
+      beq_convert(line, Instructions[instruction_count]);       
       instruction_count++;
-    }    
+    }
+    else if (!strcmp(instruction, "j") ){
+      j_convert(line, Instructions[instruction_count]);
+      instruction_count++;
+    }        
+    else if (!strcmp(instruction, "jal") ){
+      jal_convert(line, Instructions[instruction_count]);
+      instruction_count++;
+    } 
+    else if (!strcmp(instruction, "jr") ){
+      jr_convert(line, Instructions[instruction_count]);
+      instruction_count++;
+    }        
     // TODO: perform conversion of instructions to binary
     // Input: coming from stdin via: ./a.out < input.txt
     // Output: Convert instructions to binary in the instruction memory
