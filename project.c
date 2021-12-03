@@ -55,6 +55,23 @@ void print_binary_general(BIT* A, int length);
 void convert_to_binary(int a, BIT* A, int length);
 void convert_to_binary_char(int a, char* A, int length);
 int binary_to_integer(BIT* A);
+void register_map(char* register_name, BIT register_field[][5]);
+void hex_to_binary_string(char* address, char address_to_write_to[32]);
+void string_splice(char* source, int start_pos, int end_pos, char* destination);
+void address_getter(char* address_string, char* address_reformed);
+
+void add_convert(char* input_line, BIT Instructions[32]);
+void or_convert(char* input_line, BIT Instructions[32]);
+void and_convert(char* input_line, BIT Instructions[32]);
+void sub_convert(char* input_line, BIT Instructions[32]);
+void slt_convert(char* input_line, BIT Instructions[32]);
+void lw_convert(char* input_line, BIT Instructions[32]);
+void sw_convert(char* input_line, BIT Instructions[32]);
+void addi_convert(char* input_line, BIT Instructions[32]);
+void beq_convert(char* input_line, BIT Instructions[32]);
+void j_convert(char* input_line, BIT Instructions[32]);
+void jal_convert(char* input_line, BIT Instructions[32]);
+void jr_convert(char* input_line, BIT Instructions[32]);
 
 int get_instructions(BIT Instructions[][32]);
 
