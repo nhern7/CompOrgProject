@@ -13,3 +13,10 @@ Alex will do the write up.
 Naomi will finish part 2 and transition to part 4.
 Krisia also wants to do the write up. 
 Part 6 seems like the worst. yay.
+
+Meeting 3 (12-5-2021):
+Finsihed part 4. Still working on part 3 (help Edward out).
+Need to do part 5 and 6 still.
+Post question in the discussion forum?
+Banon will read the pdf more to see where he can help out.
+Also the write up is more dependent on having more code.
