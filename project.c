@@ -114,6 +114,11 @@ BIT or_gate3(BIT A, BIT B, BIT C)
   return or_gate(A, or_gate(B, C));
 }
 
+BIT or_gate4(BIT A, BIT B, BIT C, BIT D)
+{
+  return or_gate(A, or_gate3(B, C, D));
+}
+
 BIT and_gate(BIT A, BIT B)
 {
   if (A && B)
