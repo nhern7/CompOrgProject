@@ -38,6 +38,7 @@ BIT THIRTY_TWO[32] = {FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FAL
 BIT not_gate(BIT A);
 BIT or_gate(BIT A, BIT B);
 BIT or_gate3(BIT A, BIT B, BIT C);
+BIT or_gate4(BIT A, BIT B, BIT C, BIT D);
 BIT and_gate(BIT A, BIT B);
 BIT and_gate3(BIT A, BIT B, BIT C);
 BIT and_gate4(BIT A, BIT B, BIT C, BIT D);
