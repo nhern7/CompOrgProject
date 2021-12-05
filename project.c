@@ -40,6 +40,7 @@ BIT or_gate(BIT A, BIT B);
 BIT or_gate3(BIT A, BIT B, BIT C);
 BIT and_gate(BIT A, BIT B);
 BIT and_gate3(BIT A, BIT B, BIT C);
+BIT and_gate4(BIT A, BIT B, BIT C, BIT D);
 BIT xor_gate(BIT A, BIT B);
 BIT nor_gate(BIT A, BIT B);
 BIT nand_gate(BIT A, BIT B);
@@ -124,6 +125,11 @@ BIT and_gate(BIT A, BIT B)
 BIT and_gate3(BIT A, BIT B, BIT C)
 {
   return and_gate(A, and_gate(B, C));
+}
+
+BIT and_gate4(BIT A, BIT B, BIT C, BIT D)
+{
+  return and_gate(A, and_gate3(B, C, D));
 }
 
 BIT xor_gate(BIT A, BIT B)
