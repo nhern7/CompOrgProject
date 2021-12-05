@@ -1043,11 +1043,83 @@ void Control(BIT* OpCode,
   BIT* RegDst, BIT* Jump, BIT* Branch, BIT* MemRead, BIT* MemToReg,
   BIT* ALUOp, BIT* MemWrite, BIT* ALUSrc, BIT* RegWrite)
 {
-  // TODO: Set control bits for everything
-  // Input: opcode field from the instruction
-  // OUtput: all control lines get set 
-  // Note: Can use SOP or similar approaches to determine bits
+  //RegDst... = 0 for lw, 1 for R format, dont care for antyhing else
+  //POS
+  BIT lw_or_gate1 = or_gate3( not_gate(OpCode[1]), not_gate(OpCode[0]), OpCode[2] );
+  BIT lw_or_gate2 = or_gate3( OpCode[3], OpCode[4], not_gate(OpCode[5]) );
+  BIT lw_or_gate_final = or_gate(lw_or_gate1,lw_or_gate2);  
+  *RegDst = lw_or_gate_final; 
+
+  //Branch... = 1 for branch instruction, 0 otherwise
+  BIT beq_and_gate1 = and_gate3( not_gate(OpCode[0]), not_gate(OpCode[1]), OpCode[2] );
+  BIT beq_and_gate2 = and_gate3( not_gate(OpCode[3]), not_gate(OpCode[4]), not_gate(OpCode[5]) );
+  BIT beq_and_gate_final = and_gate(beq_and_gate1,beq_and_gate2);  
+  *Branch = beq_and_gate_final; 
+
+  //ALUOp... ALUOp[0] = 1 for addi and beq, 0 otherwise. ALUOp[1] = 1 for R format and addi
+  BIT addi_and_gate1 = and_gate3( not_gate(OpCode[0]), not_gate(OpCode[1]), not_gate(OpCode[2]) );
+  BIT addi_and_gate2 = and_gate3( not_gate(OpCode[5]), not_gate(OpCode[4]), OpCode[3] );
+  BIT addi_and_gate_final = and_gate(addi_and_gate1, addi_and_gate2);
+
+  BIT addi_beq_or_gate = or_gate(beq_and_gate_final, addi_and_gate_final);
+  ALUOp[0] = addi_beq_or_gate;  
+
+  BIT rformat_and_gate1 = and_gate3( not_gate(OpCode[0]), not_gate(OpCode[1]), not_gate(OpCode[2]) );
+  BIT rformat_and_gate2 = and_gate3( not_gate(OpCode[5]), not_gate(OpCode[4]), not_gate(OpCode[3]) );
+  BIT rformat_and_gate_final = and_gate(rformat_and_gate1, rformat_and_gate2);
+
+  BIT rformat_addi_or_gate = or_gate(rformat_and_gate_final, addi_and_gate_final);
+  ALUOp[1] = rformat_addi_or_gate; 
+
+  //Jump... = 1 for j type (including jr), 0 otherwise
+  //SOP
+  BIT j_and_gate1 = and_gate3( not_gate(OpCode[0]), OpCode[1], not_gate(OpCode[2]) );
+  BIT j_and_gate2 = and_gate3( not_gate(OpCode[3]), not_gate(OpCode[4]), not_gate(OpCode[5]) );
+  BIT j_and_gate_final = and_gate(j_and_gate1,j_and_gate2);
+
+  BIT jal_and_gate1 = and_gate3( OpCode[0], OpCode[1], not_gate(OpCode[2]) );
+  BIT jal_and_gate2 = and_gate3( not_gate(OpCode[3]), not_gate(OpCode[4]), OpCode[5] );
+  BIT jal_and_final = and_gate(jal_and_gate1,jal_and_gate2);
+
+  BIT jr_and_gate1 = and_gate3( not_gate(OpCode[0]),not_gate(OpCode[1]),not_gate(OpCode[2]) );
+  BIT jr_and_gate2 = and_gate3( not_gate(OpCode[3]),not_gate(OpCode[4]),not_gate(OpCode[5]) );
+  BIT jr_and_gate_final = and_gate(jr_and_gate1,jr_and_gate2);
+
+  *Jump = or_gate3( j_and_gate_final, jal_and_final, jr_and_gate_final );  
+  //problem being, all r format ones get jump = 1 but this is bad. if they all got 0, jal would be messed up
+  //possible solution, make them get 0. implement a new control signal in update_datapath or somewhere
+  //cant be here(dont think you can alter the signature) but somewhere where the pc stuff really comes into play
+
+  //MemRead... = 1 for lw, 0 otherwise
+  BIT lw_and_gate1 = and_gate3( OpCode[1], OpCode[0], not_gate(OpCode[2]) );
+  BIT lw_and_gate2 = and_gate3( not_gate(OpCode[3]), not_gate(OpCode[4]), OpCode[5] );
+  BIT lw_and_gate_final = and_gate(lw_and_gate1,lw_and_gate2);  
+  *MemRead = lw_and_gate_final;
+
+  //MemWrite... = 1 for sw, 0 otherwise
+  BIT sw_and_gate1 = and_gate3( OpCode[1], OpCode[0], not_gate(OpCode[2]) );
+  BIT sw_and_gate2 = and_gate3( OpCode[3], not_gate(OpCode[4]), OpCode[5] );
+  BIT sw_and_gate_final = and_gate(sw_and_gate1,sw_and_gate2); 
+  *MemWrite = sw_and_gate_final;
+
+  //MemToReg... = 1 for lw, 0 otherwise
+  *MemToReg = lw_and_gate_final;
+
+  //RegWrite... = 1 for load and R format and addi, 0 otherwise
+  BIT lw_addi_rformat_final = or_gate3(lw_and_gate_final, addi_and_gate_final, rformat_and_gate_final);
+  *RegWrite = lw_addi_rformat_final;
+
+  //ALUSrc... = mux that returns 1 for I format and R format, 0 otherwise
+  BIT j_or_gate1 = or_gate3( OpCode[0], not_gate(OpCode[1]), OpCode[2] );
+  BIT j_or_gate2 = or_gate3( OpCode[3], OpCode[4], OpCode[5] );
+  BIT J_or_gate_final = or_gate(j_or_gate1,j_or_gate2);
+
+  BIT jal_or_gate1 = or_gate3( not_gate(OpCode[0]), not_gate(OpCode[1]), OpCode[2] );
+  BIT jal_or_gate2 = or_gate3( OpCode[3], OpCode[4], OpCode[5] );
+  BIT jal_or_gate_final = or_gate(jal_or_gate1,jal_or_gate2);
   
+  *ALUSrc = and_gate(J_or_gate_final, jal_or_gate_final);
+
 }
 
 void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
@@ -1071,12 +1143,37 @@ void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
 
 void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl)
 {
-  // TODO: Implement ALU Control circuit
-  // Input: 2-bit ALUOp from main control circuit, 6-bit funct field from the
-  //        binary instruction
-  // Output:4-bit ALUControl for input into the ALU
-  // Note: Can use SOP or similar approaches to determine bits
+  ALUControl[3] = FALSE;
   
+  //= 1 for beq, funct (funct0 = 0, funct1 = 1, funct2 = 0, funct3 = 0), funct (funct0 = 0, funct1 = 1, funct2 = 0, funct3 = 1)
+  BIT beq_and_gate_final = and_gate( not_gate(ALUOp[1]), ALUOp[0] );
+  
+  BIT sub_and_gate1 = and_gate3( not_gate(funct[0]), funct[1], not_gate(funct[2]) );
+  BIT sub_and_gate2 = and_gate3( not_gate(funct[3]), funct[5], not_gate(funct[4]) );
+  BIT sub_and_gate_final = and_gate(sub_and_gate1,sub_and_gate2);
+
+  BIT slt_and_gate1 = and_gate3( not_gate(funct[0]), funct[1], not_gate(funct[2]) );
+  BIT slt_and_gate2 = and_gate3( not_gate(funct[4]), funct[3], funct[5] );
+  BIT slt_and_gate_final = and_gate(slt_and_gate1,slt_and_gate2);
+
+  ALUControl[2] = or_gate3(beq_and_gate_final, sub_and_gate_final, slt_and_gate_final);
+  
+  //= 0 for and, or, 1 otherwise
+  BIT and_or_gate1 = or_gate3( funct[0], funct[1], not_gate(funct[2]) );
+  BIT and_or_gate2 = or_gate3( funct[3], funct[4], not_gate(funct[5]) );
+  BIT and_or_gate_final = or_gate(and_or_gate1,and_or_gate2);
+
+  BIT or_or_gate1 = or_gate3( not_gate(funct[2]), funct[1], not_gate(funct[0]) );
+  BIT or_or_gate2 = and_or_gate2;
+  BIT or_or_gate_final = or_gate(or_or_gate1,or_or_gate2);
+  
+  ALUControl[1] = and_gate(and_or_gate_final,or_or_gate_final);
+
+  //= 1 for slt, or, 0 otherwise
+  BIT or_and_gate1 = and_gate3( not_gate(funct[0]), funct[1], not_gate(funct[2]) );
+  BIT or_and_gate2 = and_gate3( not_gate(funct[3]), not_gate(funct[4]), funct[5] );
+  BIT or_and_gate_final = and_gate(or_and_gate1,or_and_gate2);
+  ALUControl[0] = or_gate(slt_and_gate_final,or_and_gate_final);
 }
 
 void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
@@ -1107,6 +1204,12 @@ void Extend_Sign16(BIT* Input, BIT* Output)
 
 void updateState()
 {
+  /*note from working on part4: define a new local signal called JumpReg (determined by funct). 
+  "You just need a multiplexor that determines whether the new value of PC is taken from ReadData1 
+  (if it is a jr instruction) or something else (PC+4, target address of j, etc.)
+  So, for this purpose, yes, you would need a bit like the JumpReg that you mentioned to control this multiplexor."
+  */
+
   // TODO: Implement the full datapath here
   // Essentially, you'll be figuring out the order in which to process each of 
   // the sub-circuits comprising the entire processor circuit. It makes it 
