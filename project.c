@@ -1402,14 +1402,19 @@ void updateState()
   // Write Back - write to the register file
   // Update PC - determine the final PC value for the next instruction
   
-  //Fetch 
+  //first initialize stuff
   BIT Instruction[32] = {FALSE};
+  BIT OpCode[6] = {FALSE}; 
+  BIT OpCode[6] = {FALSE};
+  BIT funct[6] = {FALSE};
+  BIT ALUControl[4] = {FALSE};
+
+  //Fetch
   Instruction_Memory(PC, Instruction); 
 
   // Decode - set control bits and read from the register file
-  BIT OpCode[6] = {FALSE}; 
   for(int i = 0; i < 6; i++){
-    OpCode[i] = instruction[26 + i];
+    OpCode[i] = Instruction[26 + i];
   }
 
   Control(OpCode, &RegDst, &Jump, &Branch, &MemRead, &MemToReg,
@@ -1427,10 +1432,22 @@ void updateState()
     ReadRegister2[i] = instruction[16 + i];
   }
 
+  //Write register
   BIT WriteRegister[5] = {FALSE};
   for (int i = 0; i < 5; i++){
      WriteRegister[i] = multiplexor2(RegDst, ReadRegister2[i], instruction[11+i]);
   }
+
+  //Execute
+  for(int i = 0; i < 6; i++){
+    funct[i] = Instruction[i];
+  }
+  //(process ALU)
+  ALU_Control(ALUOp, funct, ALUControl);
+
+  //Memory (not used for R type instructions)
+
+  //Write Back
 }
 
 
@@ -1444,7 +1461,7 @@ int main()
     
   // parse instructions into binary format
   int counter = get_instructions(MEM_Instruction);
-
+  updateState();
   /*
   // load program and run
   copy_bits(ZERO, PC);
