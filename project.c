@@ -1231,15 +1231,28 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
   BIT Set = FALSE;
   BIT CarryIn;
   BIT CarryOut;
+  BIT Zero;
   ALU1(Input1[0], Input2[0], ALUControl[3], ALUControl[2], Less, 
     ALUControl[1],ALUControl[0], &Result[0],CarryIn,CarryOut,&Set);
   for (int i = 1; i < 32; i++){
     ALU1(Input1[i],Input2[i],ALUControl[3],ALUControl[2],Less,
-    ALUControl[1],ALUControl[0],&Result[i],CarryIn,CarryOut,&Set);
+    ALUControl[1],ALUControl[0],&Result[i],CarryIn,*CarryOut,&Set);
   }
   Less = Set;
   ALU1(Input1[0], Input2[0], ALUControl[3],ALUControl[2],Less, 
-    ALUControl[1],ALUControl[0],&Result[0],CarryIn,CarryOut, &Set);  
+    ALUControl[1],ALUControl[0],&Result[0],CarryIn,CarryOut,&Set);  
+  for (int i = 0; i < 31; i++){
+    BIT Zero = nor_gate(Result[i],Result[i+1]);
+  }
+  BIT gate16_1 = or_gate4(or_gate4(Result[0],Result[1],Result[2],Result[3]),
+                        or_gate4(Result[4],Result[5],Result[6],Result[7]),
+                        or_gate4(Result[8],Result[9],Result[10],Result[11]),
+                        or_gate4(Result[12],Result[13],Result[14],Result[15]));
+  BIT gate16_2 = or_gate4(or_gate4(Result[16],Result[17],Result[18],Result[19])
+                        ,or_gate4(Result[20],Result[21],Result[22],Result[23]),
+                        or_gate4(Result[24],Result[25],Result[26],Result[27]),
+                        or_gate4(Result[28],Result[29],Result[30],Result[31]));
+  BIT Zero = xor_gate2(gate16_1,gate16_2);
 }
 
 
