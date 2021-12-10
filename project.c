@@ -47,6 +47,7 @@ BIT nor_gate(BIT A, BIT B);
 BIT nand_gate(BIT A, BIT B);
 
 void decoder2(BIT I0, BIT I1, BIT* O0, BIT* O1, BIT* O2, BIT* O3);
+void decoder3(BIT* I, BIT EN, BIT* O);
 BIT multiplexor2(BIT S, BIT I0, BIT I1);
 void multiplexor2_32(BIT S, BIT* I0, BIT* I1, BIT* Output);
 BIT multiplexor4(BIT S0, BIT S1, BIT I0, BIT I1, BIT I2, BIT I3);
@@ -1106,13 +1107,10 @@ void print_state()
 /******************************************************************************/
 void Instruction_Memory(BIT* ReadAddress, BIT* Instruction)
 {
-  int ReadAddress_as_int = binary_to_integer(ReadAddress); 
+  /*int ReadAddress_as_int = binary_to_integer(ReadAddress); 
   int i;
   int j;
-  BIT output[32] = {FALSE};  
-  BIT S[5] = {FALSE};
-
-  convert_to_binary(ReadAddress_as_int, S, 5);
+  //convert_to_binary(ReadAddress_as_int, S, 5);
 
   //Note: the loop structure here allows us to use a 32mux to select EACH bit of output desired (in this case, 32 bits)
   for (i = 0; i < 32; i++){ //use a 32mux for every bit of the output (this is what 32-bit wide 32mux is)
@@ -1124,9 +1122,12 @@ void Instruction_Memory(BIT* ReadAddress, BIT* Instruction)
     MEM_Instruction[21][i], MEM_Instruction[22][i], MEM_Instruction[23][i], MEM_Instruction[24][i], MEM_Instruction[25][i], 
     MEM_Instruction[26][i], MEM_Instruction[27][i], MEM_Instruction[28][i], MEM_Instruction[29][i], MEM_Instruction[30][i], 
     MEM_Instruction[31][i]);
+  }*/
+  BIT Output[32] = {FALSE};
+  decoder5(ReadAddress, output);
+  for (int i = 0; i < 32; i++){
+    multiplexor2_32(output[i],Instruction,MEM_Instruction[i],Instruction);
   }
-
-  copy_bits(output, Instruction);
   /*
   thursday 6 to 8 pm office hours tips:
   - ReadAddress is in bit, needs to be transfered to integer (indicates actual address place)
@@ -1222,7 +1223,37 @@ void Control(BIT* OpCode,
 void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
   BIT* ReadData1, BIT* ReadData2)
 {
-  
+  /*int Register_int1 = binary_to_integer(ReadRegister1);
+  int Register_int2 = binary_to_integer(ReadRegister2); 
+  BIT Inputs1[5] = {FALSE};
+  BIT Inputs2[5] = {FALSE};
+  convert_to_binary(Register_int1, Inputs1, 5);
+  convert_to_binary(Register_int2, Inputs2, 5);
+  for (int i = 0; i < 32; i++){
+    output1[i] = multiplexor32(Inputs1[0],Inputs1[1],Inputs1[2],Inputs1[3],Inputs1[4],MEM_Register[0][i],
+    MEM_Register[1][i],MEM_Register[2][i],MEM_Register[3][i],MEM_Register[4][i],MEM_Register[5][i],
+    MEM_Register[6][i],MEM_Register[7][i],MEM_Register[8][i],vMEM_Register[9][i],MEM_Register[10][i],
+    MEM_Register[11][i],MEM_Register[12][i],MEM_Register[13][i],MEM_Register[14][i],MEM_Register[15][i],
+    MEM_Register[16][i],MEM_Register[17][i],MEM_Register[18][i],MEM_Register[19][i],MEM_Register[20][i],
+    MEM_Register[21][i],MEM_Register[22][i],MEM_Register[23][i],MEM_Register[24][i],MEM_Register[25][i],
+    MEM_Register[26][i],MEM_Register[27][i],MEM_Register[28][i],MEM_Register[29][i],MEM_Register[30][i],
+    MEM_Register[31][i]);
+    output2[i] = multiplexor32(Inputs2[0],Inputs2[1],Inputs2[2],Inputs2[3],Inputs2[4],MEM_Register[0][i],
+    MEM_Register[1][i],MEM_Register[2][i],MEM_Register[3][i],MEM_Register[4][i],MEM_Register[5][i],
+    MEM_Register[6][i],MEM_Register[7][i],MEM_Register[8][i],vMEM_Register[9][i],MEM_Register[10][i],
+    MEM_Register[11][i],MEM_Register[12][i],MEM_Register[13][i],MEM_Register[14][i],MEM_Register[15][i],
+    MEM_Register[16][i],MEM_Register[17][i],MEM_Register[18][i],MEM_Register[19][i],MEM_Register[20][i],
+    MEM_Register[21][i],MEM_Register[22][i],MEM_Register[23][i],MEM_Register[24][i],MEM_Register[25][i],
+    MEM_Register[26][i],MEM_Register[27][i],MEM_Register[28][i],MEM_Register[29][i],MEM_Register[30][i],
+    MEM_Register[31][i]);
+
+  }*/
+  BIT output1[32] = {FALSE};
+  BIT output2[32] = {FALSE};
+  for (int i = 0; i < 32; i++){
+    multiplexor2_32(output1[i],ReadData1,MEM_Register[i],ReadData1);
+    multiplexor2_32(output2[i],ReadData2,MEM_Register[i],ReadData2);
+  }  
 }
 
 void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
@@ -1306,19 +1337,16 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
   BIT Set = FALSE;
   BIT CarryIn;
   BIT CarryOut;
-  BIT zero;
   ALU1(Input1[0], Input2[0], ALUControl[3], ALUControl[2], Less, 
-    ALUControl[1],ALUControl[0], &Result[0],CarryIn,&CarryOut,&Set);
+    ALUControl[0],ALUControl[1], &Result[0],CarryIn,CarryOut,&Set);
   for (int i = 1; i < 32; i++){
     ALU1(Input1[i],Input2[i],ALUControl[3],ALUControl[2],Less,
-    ALUControl[1],ALUControl[0],&Result[i],CarryIn,&CarryOut,&Set);
+    ALUControl[0],ALUControl[1],&Result[i],CarryIn,*CarryOut,&Set);
   }
   Less = Set;
-  ALU1(Input1[0], Input2[0], ALUControl[3],ALUControl[2],Less, 
-    ALUControl[1],ALUControl[0],&Result[0],CarryIn,&CarryOut,&Set);  
-  for (int i = 0; i < 31; i++){
-    BIT zero = nor_gate(Result[i],Result[i+1]);
-  }
+  ALU1(Input1[0], Input2[0], ALUControl[3],CarryIn0,Less, 
+    ALUControl[0],ALUControl[1],&Result[0],CarryOut,&Set);  
+
   BIT gate16_1 = or_gate4(or_gate4(Result[0],Result[1],Result[2],Result[3]),
                         or_gate4(Result[4],Result[5],Result[6],Result[7]),
                         or_gate4(Result[8],Result[9],Result[10],Result[11]),
@@ -1376,9 +1404,33 @@ void updateState()
   
   //Fetch 
   BIT Instruction[32] = {FALSE};
-  Instruction_Memory(PC, Instruction);   
-  print_binary(Instruction);
-  printf("\n");
+  Instruction_Memory(PC, Instruction); 
+
+  // Decode - set control bits and read from the register file
+  BIT OpCode[6] = {FALSE}; 
+  for(int i = 0; i < 6; i++){
+    OpCode[i] = instruction[26 + i];
+  }
+
+  Control(OpCode, &RegDst, &Jump, &Branch, &MemRead, &MemToReg,
+                  ALUOp, &MemWrite, &ALUSrc, &RegWrite);
+
+  //Read register 1
+  BIT ReadRegister1[5] = {FALSE};
+  for(int i = 0; i < 5; i++){
+    ReadRegister1[i] = instruction[21 + i];
+  }
+
+  //Read register 2
+  BIT ReadRegister2[5] = {FALSE};
+  for(int i = 0; i < 5; i++){
+    ReadRegister2[i] = instruction[16 + i];
+  }
+
+  BIT WriteRegister[5] = {FALSE};
+  for (int i = 0; i < 5; i++){
+     WriteRegister[i] = multiplexor2(RegDst, ReadRegister2[i], instruction[11+i]);
+  }
 }
 
 
