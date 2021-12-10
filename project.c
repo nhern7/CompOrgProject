@@ -1309,7 +1309,7 @@ void adder1(BIT A, BIT B, BIT CarryIn, BIT* CarryOut, BIT* Sum)
 }
 
 void ALU1(BIT A, BIT B, BIT LSB1, BIT LSB2, BIT Less,
-BIT MSB2, BIT MSB1, BIT * Result, BIT CarryIn, BIT * CarryOut, BIT * Set)
+BIT Op0, BIT Op1, BIT * Result, BIT * CarryOut, BIT * Set)
 {
   BIT Binvert = and_gate(MSB2,LSB2);
   BIT x0 = multiplexor2(Binvert, B, not_gate(B));
@@ -1327,6 +1327,7 @@ BIT MSB2, BIT MSB1, BIT * Result, BIT CarryIn, BIT * CarryOut, BIT * Set)
 
 void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
 {   
+  // TODO: Implement 32-bit ALU
   // Input: 4-bit ALUControl, two 32-bit inputs
   // Output: 32-bit result, and zero flag big
   // Note: Can re-use prior implementations (but need new circuitry for zero)
@@ -1334,15 +1335,21 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
   BIT Set = FALSE;
   BIT CarryIn;
   BIT CarryOut;
-  ALU1(Input1[0], Input2[0], ALUControl[3], ALUControl[2], Less, 
-    ALUControl[0],ALUControl[1], &Result[0],CarryIn,&CarryOut,&Set);
+
+  BIT TempIn = CarryIn;
+  BIT TempOut = FALSE;
+
+  ALU1(Input1[0], Input2[0], ALUControl[3], TempIn, Less, 
+    ALUControl[0],ALUControl[1], &Result[0],&TempOut,&Set);
+    TempIn = TempOut;
   for (int i = 1; i < 32; i++){
-    ALU1(Input1[i],Input2[i],ALUControl[3],ALUControl[2],Less,
-    ALUControl[0],ALUControl[1],&Result[i],CarryIn,&CarryOut,&Set);
+    ALU1(Input1[i],Input2[i],ALUControl[3],TempIn,Less,
+    ALUControl[0],ALUControl[1],&Result[i],&TempOut,&Set);
+    TempIn = TempOut;
   }
   Less = Set;
-  ALU1(Input1[0], Input2[0], ALUControl[3],CarryIn,Less, 
-    ALUControl[0],ALUControl[1],&Result[0],CarryOut,&Set);  
+  ALU1(Input1[0], Input2[0], ALUControl[3],ALUControl[2],Less, 
+    ALUControl[0],ALUControl[1],&Result[0],&TempOut,&TempOut);  
 
   BIT gate16_1 = or_gate4(or_gate4(Result[0],Result[1],Result[2],Result[3]),
                         or_gate4(Result[4],Result[5],Result[6],Result[7]),
@@ -1352,7 +1359,7 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
                         ,or_gate4(Result[20],Result[21],Result[22],Result[23]),
                         or_gate4(Result[24],Result[25],Result[26],Result[27]),
                         or_gate4(Result[28],Result[29],Result[30],Result[31]));
-  *Zero = not_gate(or_gate(gate16_1,gate16_2));
+  Zero = not_gate(or_gate(gate16_1,gate16_2));
 }
 
 void Data_Memory(BIT MemWrite, BIT MemRead, 
