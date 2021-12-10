@@ -1306,18 +1306,18 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
   BIT Set = FALSE;
   BIT CarryIn;
   BIT CarryOut;
-  BIT Zero;
+  BIT zero;
   ALU1(Input1[0], Input2[0], ALUControl[3], ALUControl[2], Less, 
-    ALUControl[1],ALUControl[0], &Result[0],CarryIn,CarryOut,&Set);
+    ALUControl[1],ALUControl[0], &Result[0],CarryIn,&CarryOut,&Set);
   for (int i = 1; i < 32; i++){
     ALU1(Input1[i],Input2[i],ALUControl[3],ALUControl[2],Less,
-    ALUControl[1],ALUControl[0],&Result[i],CarryIn,*CarryOut,&Set);
+    ALUControl[1],ALUControl[0],&Result[i],CarryIn,&CarryOut,&Set);
   }
   Less = Set;
   ALU1(Input1[0], Input2[0], ALUControl[3],ALUControl[2],Less, 
-    ALUControl[1],ALUControl[0],&Result[0],CarryIn,CarryOut,&Set);  
+    ALUControl[1],ALUControl[0],&Result[0],CarryIn,&CarryOut,&Set);  
   for (int i = 0; i < 31; i++){
-    BIT Zero = nor_gate(Result[i],Result[i+1]);
+    BIT zero = nor_gate(Result[i],Result[i+1]);
   }
   BIT gate16_1 = or_gate4(or_gate4(Result[0],Result[1],Result[2],Result[3]),
                         or_gate4(Result[4],Result[5],Result[6],Result[7]),
@@ -1327,7 +1327,7 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
                         ,or_gate4(Result[20],Result[21],Result[22],Result[23]),
                         or_gate4(Result[24],Result[25],Result[26],Result[27]),
                         or_gate4(Result[28],Result[29],Result[30],Result[31]));
-  BIT Zero = not_gate(or_gate(gate16_1,gate16_2));
+  zero = not_gate(or_gate(gate16_1,gate16_2));
 }
 
 void Data_Memory(BIT MemWrite, BIT MemRead, 
@@ -1374,6 +1374,11 @@ void updateState()
   // Write Back - write to the register file
   // Update PC - determine the final PC value for the next instruction
   
+  //Fetch 
+  BIT Instruction[32] = {FALSE};
+  Instruction_Memory(PC, Instruction);   
+  print_binary(Instruction);
+  printf("\n");
 }
 
 
@@ -1387,10 +1392,6 @@ int main()
     
   // parse instructions into binary format
   int counter = get_instructions(MEM_Instruction);
-  
-  //example of how to call Instruction_Memory, notice PC is initialized to be the same as ZERO
-  //BIT Instruction[32] = {FALSE};
-  //Instruction_Memory(PC, Instruction); 
 
   /*
   // load program and run
