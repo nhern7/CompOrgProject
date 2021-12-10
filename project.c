@@ -1206,9 +1206,9 @@ void adder1(BIT A, BIT B, BIT CarryIn, BIT* CarryOut, BIT* Sum)
 }
 
 void ALU1(BIT A, BIT B, BIT LSB1, BIT LSB2, BIT Less,
-BIT MSB1, BIT MSB2, BIT * Result, BIT * CarryOut, BIT * Set)
+BIT MSB2, BIT MSB1, BIT * Result, BIT * CarryOut, BIT * Set)
 {
-  BIT Binvert = xor_gate(MSB1,MSB2);
+  BIT Binvert = and_gate(MSB2,LSB2);
   BIT x0 = multiplexor2(Binvert, B, not_gate(B));
 
   BIT y0 = and_gate(A,x0);
