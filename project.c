@@ -1124,9 +1124,9 @@ void Instruction_Memory(BIT* ReadAddress, BIT* Instruction)
     MEM_Instruction[31][i]);
   }*/
   BIT Output[32] = {FALSE};
-  decoder5(ReadAddress, output);
+  decoder5(ReadAddress, Output);
   for (int i = 0; i < 32; i++){
-    multiplexor2_32(output[i],Instruction,MEM_Instruction[i],Instruction);
+    multiplexor2_32(Output[i],Instruction,MEM_Instruction[i],Instruction);
   }
   /*
   thursday 6 to 8 pm office hours tips:
@@ -1258,7 +1258,6 @@ void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
 
 void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
 {
-  // TODO: Implement register write functionality
   // Input: one 5-bit register address, data to write, and control bit
   // Output: None, but will modify register file
   // Note: Implementation will again be similar to those above
@@ -1301,7 +1300,6 @@ void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl)
 
 void adder1(BIT A, BIT B, BIT CarryIn, BIT* CarryOut, BIT* Sum)
 {
-  // TODO: implement a 1-bit adder
   BIT x0 = xor_gate(A, B);
   *Sum = xor_gate(CarryIn, x0);
   
@@ -1329,7 +1327,6 @@ BIT MSB2, BIT MSB1, BIT * Result, BIT CarryIn, BIT * CarryOut, BIT * Set)
 
 void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
 {   
-  // TODO: Implement 32-bit ALU
   // Input: 4-bit ALUControl, two 32-bit inputs
   // Output: 32-bit result, and zero flag big
   // Note: Can re-use prior implementations (but need new circuitry for zero)
@@ -1338,13 +1335,13 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
   BIT CarryIn;
   BIT CarryOut;
   ALU1(Input1[0], Input2[0], ALUControl[3], ALUControl[2], Less, 
-    ALUControl[0],ALUControl[1], &Result[0],CarryIn,CarryOut,&Set);
+    ALUControl[0],ALUControl[1], &Result[0],CarryIn,&CarryOut,&Set);
   for (int i = 1; i < 32; i++){
     ALU1(Input1[i],Input2[i],ALUControl[3],ALUControl[2],Less,
-    ALUControl[0],ALUControl[1],&Result[i],CarryIn,*CarryOut,&Set);
+    ALUControl[0],ALUControl[1],&Result[i],CarryIn,&CarryOut,&Set);
   }
   Less = Set;
-  ALU1(Input1[0], Input2[0], ALUControl[3],CarryIn0,Less, 
+  ALU1(Input1[0], Input2[0], ALUControl[3],CarryIn,Less, 
     ALUControl[0],ALUControl[1],&Result[0],CarryOut,&Set);  
 
   BIT gate16_1 = or_gate4(or_gate4(Result[0],Result[1],Result[2],Result[3]),
@@ -1355,7 +1352,7 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
                         ,or_gate4(Result[20],Result[21],Result[22],Result[23]),
                         or_gate4(Result[24],Result[25],Result[26],Result[27]),
                         or_gate4(Result[28],Result[29],Result[30],Result[31]));
-  zero = not_gate(or_gate(gate16_1,gate16_2));
+  *Zero = not_gate(or_gate(gate16_1,gate16_2));
 }
 
 void Data_Memory(BIT MemWrite, BIT MemRead, 
@@ -1405,9 +1402,17 @@ void updateState()
   //first initialize stuff
   BIT Instruction[32] = {FALSE};
   BIT OpCode[6] = {FALSE}; 
-  BIT OpCode[6] = {FALSE};
   BIT funct[6] = {FALSE};
-  BIT ALUControl[4] = {FALSE};
+  BIT ALUControl_var[4] = {FALSE};
+  BIT ReadRegister1_registerfile[5] = {FALSE};
+  BIT ReadRegister2_registerfile[5] = {FALSE};
+  BIT ReadData_registerfile1[5] = {FALSE};
+  BIT ReadData_registerfile2[5] = {FALSE};
+  BIT ReadData_datamemory[5] = {FALSE};
+  BIT Result[32] = {FALSE};
+  BIT WriteData_datamemory[32] = {FALSE};
+  BIT WriteData_registerfile[32] = {FALSE};
+  BIT WriteRegister_var[5] = {FALSE};
 
   //Fetch
   Instruction_Memory(PC, Instruction); 
@@ -1419,23 +1424,21 @@ void updateState()
 
   Control(OpCode, &RegDst, &Jump, &Branch, &MemRead, &MemToReg,
                   ALUOp, &MemWrite, &ALUSrc, &RegWrite);
-
   //Read register 1
-  BIT ReadRegister1[5] = {FALSE};
   for(int i = 0; i < 5; i++){
-    ReadRegister1[i] = instruction[21 + i];
+    ReadRegister1_registerfile[i] = Instruction[21 + i];
   }
 
   //Read register 2
-  BIT ReadRegister2[5] = {FALSE};
   for(int i = 0; i < 5; i++){
-    ReadRegister2[i] = instruction[16 + i];
+    ReadRegister2_registerfile[i] = Instruction[16 + i];
   }
+  //set Read Data 1 and 2
+  Read_Register(ReadRegister1_registerfile, ReadRegister2_registerfile, ReadData_registerfile1, ReadData_registerfile2);
 
   //Write register
-  BIT WriteRegister[5] = {FALSE};
   for (int i = 0; i < 5; i++){
-     WriteRegister[i] = multiplexor2(RegDst, ReadRegister2[i], instruction[11+i]);
+     WriteRegister_var[i] = multiplexor2(RegDst, ReadRegister2_registerfile[i], Instruction[11+i]);
   }
 
   //Execute
@@ -1443,11 +1446,19 @@ void updateState()
     funct[i] = Instruction[i];
   }
   //(process ALU)
-  ALU_Control(ALUOp, funct, ALUControl);
+  ALU_Control(ALUOp, funct, ALUControl_var);
+  ALU(ALUControl_var, ReadRegister1_registerfile, ReadRegister2_registerfile, &Zero, Result);
 
-  //Memory (not used for R type instructions)
+  //Memory
+  Data_Memory(MemWrite, MemRead, Result, WriteData_datamemory, ReadData_datamemory);
+  
+  //Write Back 
+  //(select which source to use for write data)
+  multiplexor2_32(MemToReg, ReadData_datamemory, Result, WriteData_registerfile);
+  Write_Register(RegWrite, WriteRegister_var, WriteData_registerfile);
 
-  //Write Back
+  //Update PC
+
 }
 
 
