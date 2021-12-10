@@ -1206,7 +1206,7 @@ void adder1(BIT A, BIT B, BIT CarryIn, BIT* CarryOut, BIT* Sum)
 }
 
 void ALU1(BIT A, BIT B, BIT LSB1, BIT LSB2, BIT Less,
-BIT MSB2, BIT MSB1, BIT * Result, BIT * CarryOut, BIT * Set)
+BIT MSB2, BIT MSB1, BIT * Result, BIT CarryIn, BIT * CarryOut, BIT * Set)
 {
   BIT Binvert = and_gate(MSB2,LSB2);
   BIT x0 = multiplexor2(Binvert, B, not_gate(B));
@@ -1219,7 +1219,7 @@ BIT MSB2, BIT MSB1, BIT * Result, BIT * CarryOut, BIT * Set)
   *Set = y2;
   BIT y3 = Less;
 
-  *Result = multiplexor4(LSB1,LSB2,y0,y1,y2,y3);
+  *Result = multiplexor4(LSB2,LSB1,y0,y1,y2,y3);
 }
 void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
 {   
@@ -1232,14 +1232,14 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
   BIT CarryIn;
   BIT CarryOut;
   ALU1(Input1[0], Input2[0], ALUControl[3], ALUControl[2], Less, 
-    ALUControl[1],ALUControl[0], &Result[0],CarryOut,&Set);
+    ALUControl[1],ALUControl[0], &Result[0],CarryIn,CarryOut,&Set);
   for (int i = 1; i < 32; i++){
     ALU1(Input1[i],Input2[i],ALUControl[3],ALUControl[2],Less,
-    ALUControl[1],ALUControl[0],&Result[i],CarryOut,&Set);
+    ALUControl[1],ALUControl[0],&Result[i],CarryIn,CarryOut,&Set);
   }
   Less = Set;
   ALU1(Input1[0], Input2[0], ALUControl[3],ALUControl[2],Less, 
-    ALUControl[1],ALUControl[0],&Result[0],CarryOut, &Set);  
+    ALUControl[1],ALUControl[0],&Result[0],CarryIn,CarryOut, &Set);  
 }
 
 
