@@ -85,6 +85,9 @@ void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
   BIT* ReadData1, BIT* ReadData2);
 void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData);
 void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl);
+void adder1(BIT A, BIT B, BIT CarryIn, BIT* CarryOut, BIT* Sum);
+void ALU1(BIT A, BIT B, BIT LSB1, BIT LSB2, BIT Less,
+BIT MSB2, BIT MSB1, BIT * Result, BIT CarryIn, BIT * CarryOut, BIT * Set);
 void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result);
 void Data_Memory(BIT MemWrite, BIT MemRead, 
   BIT* Address, BIT* WriteData, BIT* ReadData);
@@ -1265,13 +1268,66 @@ void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl)
   ALUControl[0] = or_gate(slt_and_gate_final,or_and_gate_final);
 }
 
+void adder1(BIT A, BIT B, BIT CarryIn, BIT* CarryOut, BIT* Sum)
+{
+  // TODO: implement a 1-bit adder
+  BIT x0 = xor_gate(A, B);
+  *Sum = xor_gate(CarryIn, x0);
+  
+  BIT y0 = and_gate(x0, CarryIn);
+  BIT y1 = and_gate(A, B);
+  *CarryOut = or_gate(y0, y1);
+}
+
+void ALU1(BIT A, BIT B, BIT LSB1, BIT LSB2, BIT Less,
+BIT MSB2, BIT MSB1, BIT * Result, BIT CarryIn, BIT * CarryOut, BIT * Set)
+{
+  BIT Binvert = and_gate(MSB2,LSB2);
+  BIT x0 = multiplexor2(Binvert, B, not_gate(B));
+
+  BIT y0 = and_gate(A,x0);
+  BIT y1 = or_gate(A,x0);
+  
+  BIT y2 = FALSE;
+  adder1(A, x0, CarryIn, CarryOut, &y2);
+  *Set = y2;
+  BIT y3 = Less;
+
+  *Result = multiplexor4(LSB2,LSB1,y0,y1,y2,y3);
+}
+
 void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
 {   
   // TODO: Implement 32-bit ALU
   // Input: 4-bit ALUControl, two 32-bit inputs
   // Output: 32-bit result, and zero flag big
   // Note: Can re-use prior implementations (but need new circuitry for zero)
-  
+  BIT Less = FALSE;
+  BIT Set = FALSE;
+  BIT CarryIn;
+  BIT CarryOut;
+  BIT Zero;
+  ALU1(Input1[0], Input2[0], ALUControl[3], ALUControl[2], Less, 
+    ALUControl[1],ALUControl[0], &Result[0],CarryIn,CarryOut,&Set);
+  for (int i = 1; i < 32; i++){
+    ALU1(Input1[i],Input2[i],ALUControl[3],ALUControl[2],Less,
+    ALUControl[1],ALUControl[0],&Result[i],CarryIn,*CarryOut,&Set);
+  }
+  Less = Set;
+  ALU1(Input1[0], Input2[0], ALUControl[3],ALUControl[2],Less, 
+    ALUControl[1],ALUControl[0],&Result[0],CarryIn,CarryOut,&Set);  
+  for (int i = 0; i < 31; i++){
+    BIT Zero = nor_gate(Result[i],Result[i+1]);
+  }
+  BIT gate16_1 = or_gate4(or_gate4(Result[0],Result[1],Result[2],Result[3]),
+                        or_gate4(Result[4],Result[5],Result[6],Result[7]),
+                        or_gate4(Result[8],Result[9],Result[10],Result[11]),
+                        or_gate4(Result[12],Result[13],Result[14],Result[15]));
+  BIT gate16_2 = or_gate4(or_gate4(Result[16],Result[17],Result[18],Result[19])
+                        ,or_gate4(Result[20],Result[21],Result[22],Result[23]),
+                        or_gate4(Result[24],Result[25],Result[26],Result[27]),
+                        or_gate4(Result[28],Result[29],Result[30],Result[31]));
+  BIT Zero = not_gate(or_gate(gate16_1,gate16_2));
 }
 
 void Data_Memory(BIT MemWrite, BIT MemRead, 
@@ -1288,7 +1344,14 @@ void Extend_Sign16(BIT* Input, BIT* Output)
 {
   // TODO: Implement 16-bit to 32-bit sign extender
   // Copy Input to Output, then extend 16th Input bit to 17-32 bits in Output
-  
+  for (int i = 0; i < 16; i++){
+    Output[i] = TRUE;
+  }
+  int j = 0;
+  for (int i = 16; i < 32; i++){
+    Output[i] = Input[j];
+    j++;
+  }
 }
 
 void updateState()
