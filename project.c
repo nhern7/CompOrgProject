@@ -1252,7 +1252,7 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
                         ,or_gate4(Result[20],Result[21],Result[22],Result[23]),
                         or_gate4(Result[24],Result[25],Result[26],Result[27]),
                         or_gate4(Result[28],Result[29],Result[30],Result[31]));
-  BIT Zero = xor_gate2(gate16_1,gate16_2);
+  BIT Zero = not_gate(or_gate(gate16_1,gate16_2));
 }
 
 
