@@ -1205,20 +1205,21 @@ void adder1(BIT A, BIT B, BIT CarryIn, BIT* CarryOut, BIT* Sum)
   *CarryOut = or_gate(y0, y1);
 }
 
-void ALU1(BIT A, BIT B, BIT CarryIn, BIT Binvert, BIT Less,
-BIT Control0,BIT Control1, BIT Control2,
-BIT* Result, BIT* CarryOut, BIT * Set)
+void ALU1(BIT A, BIT B, BIT LSB1, BIT LSB2, BIT Less,
+BIT MSB1, BIT MSB2, BIT * Result, BIT * CarryOut, BIT * Set)
 {
+  BIT Binvert = xor_gate(MSB1,MSB2);
   BIT x0 = multiplexor2(Binvert, B, not_gate(B));
 
   BIT y0 = and_gate(A,x0);
   BIT y1 = or_gate(A,x0);
   
   BIT y2 = FALSE;
-  adder1(A, B, CarryIn, CarryOut, &y2);
+  adder1(A, x0, CarryIn, CarryOut, &y2);
   *Set = y2;
   BIT y3 = Less;
-  *Result = multiplexor8(Control0, Control1, Control2, y0, y1, y2, y3);
+
+  *Result = multiplexor4(LSB1,LSB2,y0,y1,y2,y3);
 }
 void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
 {   
@@ -1228,28 +1229,17 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
   // Note: Can re-use prior implementations (but need new circuitry for zero)
   BIT Less = FALSE;
   BIT Set = FALSE;
-  BIT CarryIn = FALSE;
-  BIT CarryOut = FALSE;
-  BIT s0 = ALUControl[2];
-  BIT s1 = ALUControl[1];
-  BIT s2 = ALUControl[0];
-  BIT Op = multiplexor8(s0,s1,s2,//8 inputs??);
-  ALU1(Input1[0], Input2[0], /*Binvert, CarryIn, CarryOut??*/, Less, 
-    &Op, &Result[0],&Set);
+  BIT CarryIn;
+  BIT CarryOut;
+  ALU1(Input1[0], Input2[0], ALUControl[3], ALUControl[2], Less, 
+    ALUControl[1],ALUControl[0], &Result[0],CarryOut,&Set);
   for (int i = 1; i < 32; i++){
-    BIT x0 = multiplexor2(Input2_invert[i], Input2[i], not_gate(Input2[i]));
-    BIT y0 = and_gate(Input1[i],x0);
-    BIT y1 = or_gate(Input1[i],x0);
-    BIT y2 = FALSE;
-    adder1(Input1[i], x0, &CarryIn, &CarryOut, &y2);
-    *Set = y2;
-    BIT y3 = Less;
-    ALU1(Input1[i],Input2[i],/*Binvert,CarryIn,CarryOut??*/Less,&Op,&Result[i],&Set);
-
+    ALU1(Input1[i],Input2[i],ALUControl[3],ALUControl[2],Less,
+    ALUControl[1],ALUControl[0],&Result[i],CarryOut,&Set);
   }
   Less = Set;
-  ALU1(Input[0], Input2[0], /*Binvert, CarryIn, CarryOut??*/Less, 
-    &Op, &Result[0], CarryOut, &Set);  
+  ALU1(Input1[0], Input2[0], ALUControl[3],ALUControl[2],Less, 
+    ALUControl[1],ALUControl[0],&Result[0],CarryOut, &Set);  
 }
 
 
@@ -1296,7 +1286,7 @@ void updateState()
   // Memory - read/write data memory
   // Write Back - write to the register file
   // Update PC - determine the final PC value for the next instruction
-  pc++;
+  Instruction_Memory(MEM_Instruction)
   
 }
 
