@@ -199,6 +199,67 @@ BIT multiplexor4(BIT S0, BIT S1, BIT I0, BIT I1, BIT I2, BIT I3)
   return or_gate(z0, z1);  
 }
 
+BIT multiplexor8(BIT S0, BIT S1, BIT S2, BIT I0, BIT I1, BIT I2, BIT I3, BIT I4, BIT I5, BIT I6, BIT I7)
+{
+  BIT x0 = and_gate4(I0, not_gate(S2),not_gate(S1), not_gate(S2));
+  BIT x1 = and_gate4(I1, S0, not_gate(S1), not_gate(S2));
+  BIT x2 = and_gate4(I2, not_gate(S0), S1, not_gate(S2));
+  BIT x3 = and_gate4(I3, S0, S1, not_gate(S2));
+  BIT x4 = and_gate4(I4, not_gate(S0), not_gate(S1), S2);
+  BIT x5 = and_gate4(I5, S0, not_gate(S1), S2);
+  BIT x6 = and_gate4(I6, not_gate(S0), S1, S2);
+  BIT x7 = and_gate4(I7, S0, S1, S2);
+
+  BIT y0 = or_gate4( x0,x1,x2,x3 );
+  BIT y1 = or_gate4( x4,x5,x6,x7 );
+  return or_gate(y0,y1);
+} 
+
+BIT multiplexor32(BIT S0, BIT S1, BIT S2, BIT S3, BIT S4, BIT I0, BIT I1, BIT I2, BIT I3, BIT I4, BIT I5, BIT I6,
+ BIT I7, BIT I8, BIT I9, BIT I10, BIT I11, BIT I12, BIT I13, BIT I14, BIT I15, BIT I16, BIT I17, BIT I18, BIT I19, 
+ BIT I20, BIT I21, BIT I22, BIT I23, BIT I24, BIT I25, BIT I26, BIT I27, BIT I28, BIT I29, BIT I30, BIT I31){
+
+  BIT x0 = multiplexor8(S0, S1, S2, I0, I1, I2, I3, I4, I5, I6, I7);
+  BIT x1 = multiplexor8(S0, S1, S2, I8, I9, I10, I11, I12, I13, I14, I15);
+  BIT x2 = multiplexor8(S0, S1, S2, I16, I17, I18, I19, I20, I21, I22, I23);
+  BIT x3 = multiplexor8(S0, S1, S2, I24, I25, I26, I27, I28, I29, I30, I31);
+
+  BIT y = multiplexor4(S3, S4, x0, x1, x2, x3); 
+  return y;
+}
+
+void decoder3(BIT* I, BIT EN, BIT* O)
+{
+  O[0] = and_gate3(not_gate(I[2]), not_gate(I[1]), not_gate(I[0]));
+  O[1] = and_gate3(not_gate(I[2]), not_gate(I[1]), I[0]);
+  O[2] = and_gate3(not_gate(I[2]), I[1], not_gate(I[0]));
+  O[3] = and_gate3(not_gate(I[2]), I[1], I[0]);
+  O[4] = and_gate3(I[2], not_gate(I[1]), not_gate(I[0]));
+  O[5] = and_gate3(I[2], not_gate(I[1]), I[0]);
+  O[6] = and_gate3(I[2], I[1], not_gate(I[0]));
+  O[7] = and_gate3(I[2], I[1], I[0]);
+  
+  O[0] = and_gate(EN, O[0]);
+  O[1] = and_gate(EN, O[1]);
+  O[2] = and_gate(EN, O[2]);
+  O[3] = and_gate(EN, O[3]);
+  O[4] = and_gate(EN, O[4]);
+  O[5] = and_gate(EN, O[5]);
+  O[6] = and_gate(EN, O[6]);
+  O[7] = and_gate(EN, O[7]);
+  
+  return;
+}
+
+void decoder5(BIT* I, BIT* O)
+{ 
+   BIT EN[4] = {FALSE};
+   decoder2(I[3], I[4], &EN[0], &EN[1], &EN[2], &EN[3]);
+   decoder3(I, EN[3], &O[24]);
+   decoder3(I, EN[2], &O[16]);
+   decoder3(I, EN[1], &O[8]);
+   decoder3(I, EN[0], &O[0]);
+}
 
 /******************************************************************************/
 /* Helper functions */
@@ -218,6 +279,7 @@ void print_binary(BIT* A) //expecting length of 32
 
 void print_binary_general(BIT* A, int length) //expecting any length, should be 1 less than the actual
 {
+  //Note: not used during implementation, but for understanding the code more and debugging stuff
   for (int i = length; i >= 0; --i)
     printf("%d", A[i]); 
 }
@@ -989,11 +1051,8 @@ int get_instructions(BIT Instructions[][32])
     // - Use registers to get rt, rd, rs fields
     // Note: I parse everything as strings, then convert to BIT array at end
   }
-  
   return instruction_count;
 }
-
-
 /******************************************************************************/
 /* Program state - memory spaces, PC, and control */
 /******************************************************************************/
@@ -1044,11 +1103,34 @@ void print_state()
 /******************************************************************************/
 void Instruction_Memory(BIT* ReadAddress, BIT* Instruction)
 {
-  // TODO: Implement instruction memory
-  // Input: 32-bit instruction address
-  // Output: 32-bit binary instruction
-  // Note: Useful to use a 5-to-32 decoder here
+  int ReadAddress_as_int = binary_to_integer(ReadAddress); 
+  int i;
+  int j;
+  BIT output[32] = {FALSE};  
+  BIT S[5] = {FALSE};
+
+  convert_to_binary(ReadAddress_as_int, S, 5);
+
+  //Note: the loop structure here allows us to use a 32mux to select EACH bit of output desired (in this case, 32 bits)
+  for (i = 0; i < 32; i++){ //use a 32mux for every bit of the output (this is what 32-bit wide 32mux is)
+    output[i] = multiplexor32(S[0], S[1], S[2], S[3], S[4], MEM_Instruction[0][i],
+    MEM_Instruction[1][i], MEM_Instruction[2][i], MEM_Instruction[3][i], MEM_Instruction[4][i], MEM_Instruction[5][i], 
+    MEM_Instruction[6][i], MEM_Instruction[7][i], MEM_Instruction[8][i], MEM_Instruction[9][i], MEM_Instruction[10][i],
+    MEM_Instruction[11][i], MEM_Instruction[12][i], MEM_Instruction[13][i], MEM_Instruction[14][i], MEM_Instruction[15][i],
+    MEM_Instruction[16][i], MEM_Instruction[17][i], MEM_Instruction[18][i], MEM_Instruction[19][i], MEM_Instruction[20][i], 
+    MEM_Instruction[21][i], MEM_Instruction[22][i], MEM_Instruction[23][i], MEM_Instruction[24][i], MEM_Instruction[25][i], 
+    MEM_Instruction[26][i], MEM_Instruction[27][i], MEM_Instruction[28][i], MEM_Instruction[29][i], MEM_Instruction[30][i], 
+    MEM_Instruction[31][i]);
+  }
+
+  copy_bits(output, Instruction);
+  /*
+  thursday 6 to 8 pm office hours tips:
+  - ReadAddress is in bit, needs to be transfered to integer (indicates actual address place)
+  - Instruction is used to store instruction
   
+  - first get address to read, then copy everything read from the address to instruction
+  */
 }
 
 void Control(BIT* OpCode,
@@ -1137,10 +1219,6 @@ void Control(BIT* OpCode,
 void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
   BIT* ReadData1, BIT* ReadData2)
 {
-  // TODO: Implement register read functionality
-  // Input: two 5-bit register addresses
-  // Output: the values of the specified registers in ReadData1 and ReadData2
-  // Note: Implementation will be very similar to instruction memory circuit
   
 }
 
@@ -1150,7 +1228,6 @@ void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
   // Input: one 5-bit register address, data to write, and control bit
   // Output: None, but will modify register file
   // Note: Implementation will again be similar to those above
-  
 }
 
 void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl)
@@ -1247,6 +1324,10 @@ int main()
     
   // parse instructions into binary format
   int counter = get_instructions(MEM_Instruction);
+  
+  //example of how to call Instruction_Memory, notice PC is initialized to be the same as ZERO
+  //BIT Instruction[32] = {FALSE};
+  //Instruction_Memory(PC, Instruction); 
 
   /*
   // load program and run
