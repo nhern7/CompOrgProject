@@ -1262,7 +1262,7 @@ void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
   // Output: None, but will modify register file
   // Note: Implementation will again be similar to those above
   BIT write_register[32] = {FALSE};
-  decoder5(WriteRegister,temp);
+  decoder5(WriteRegister,write_register);
   for(int i = 0; i < 32; i++){
     multiplexor2_32(and_gate(RegWrite,write_register[i]), MEM_Register[i], WriteData, MEM_Register[i]);
   }
@@ -1376,7 +1376,7 @@ void Data_Memory(BIT MemWrite, BIT MemRead,
   // Output: data read if processing a lw instruction
   // Note: Implementation similar as above
   BIT address[32] = {FALSE};
-  decoder5(Address, temp);
+  decoder5(Address, address);
   for(int i = 0; i < 32; i++){
     multiplexor2_32(and_gate(address[i], MemWrite), MEM_Data[i], WriteData, MEM_Data[i]);
     multiplexor2_32(and_gate(address[i], MemRead), ReadData, MEM_Data[i], ReadData);
