@@ -389,13 +389,6 @@ void hex_to_binary_string(char* address, char address_to_write_to[32]){
       address_to_write_to[j-3] = '1';
       j -= 4;
     }
-    else if (address[i] == '1'){
-      address_to_write_to[j] = '0';
-      address_to_write_to[j-1] = '0';
-      address_to_write_to[j-2] = '0';
-      address_to_write_to[j-3] = '1';
-      j -= 4;
-    }    
     else if (address[i] == '2'){
       address_to_write_to[j] = '0';
       address_to_write_to[j-1] = '0';
@@ -1311,8 +1304,7 @@ void adder1(BIT A, BIT B, BIT CarryIn, BIT* CarryOut, BIT* Sum)
 void ALU1(BIT A, BIT B, BIT LSB1, BIT LSB2, BIT Less,
 BIT Op0, BIT Op1, BIT * Result, BIT * CarryOut, BIT * Set)
 {
-  BIT Binvert = and_gate(MSB2,LSB2);
-  BIT x0 = multiplexor2(Binvert, B, not_gate(B));
+  BIT x0 = multiplexor2(LSB1, B, not_gate(B));
 
   BIT y0 = and_gate(A,x0);
   BIT y1 = or_gate(A,x0);
@@ -1414,6 +1406,8 @@ void updateState()
   BIT ReadRegister2_registerfile[5] = {FALSE};
   BIT ReadData_registerfile1[5] = {FALSE};
   BIT ReadData_registerfile2[5] = {FALSE};
+  BIT Extended[32] = {FALSE};
+  BIT Short_extend[16] = {FALSE};
   BIT ReadData_datamemory[5] = {FALSE};
   BIT Result[32] = {FALSE};
   BIT WriteData_datamemory[32] = {FALSE};
@@ -1453,6 +1447,13 @@ void updateState()
   for(int i = 0; i < 6; i++){
     funct[i] = Instruction[i];
   }
+  
+  //Sign Extend
+  for (int i = 0; i < 16; i++){
+    Short_extend[i] = Instruction[i];
+  }
+  Extend_Sign16(Short_extend, Extended);
+  
   //(process ALU)
   ALU_Control(ALUOp, funct, ALUControl_var);
   //(make sure to select which source to sue for 2nd operand in the ALU)
