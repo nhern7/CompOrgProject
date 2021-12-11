@@ -1261,6 +1261,11 @@ void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
   // Input: one 5-bit register address, data to write, and control bit
   // Output: None, but will modify register file
   // Note: Implementation will again be similar to those above
+  BIT temp[32] = {FALSE};
+  decoder5(WriteRegister,temp);
+  for(int i = 0; i < 32; i++){
+    multiplexor2_32(and_gate(RegWrite,temp[i]), MEM_Register[i], WriteData, MEM_Register[i]);
+  }
 }
 
 void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl)
@@ -1308,7 +1313,7 @@ void adder1(BIT A, BIT B, BIT CarryIn, BIT* CarryOut, BIT* Sum)
   *CarryOut = or_gate(y0, y1);
 }
 
-void ALU1(BIT A, BIT B, BIT LSB1, BIT LSB2, BIT Less,
+void ALU1(BIT A, BIT B, BIT Binvert, BIT CarryIn, BIT Less,
 BIT Op0, BIT Op1, BIT * Result, BIT * CarryOut, BIT * Set)
 {
   BIT x0 = multiplexor2(LSB1, B, not_gate(B));
@@ -1334,20 +1339,23 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
   BIT Set = FALSE;
   BIT CarryIn;
   BIT CarryOut;
+  BIT Binvert = ALUControl[2];
+  BIT CarryIn = ALUControl[3];
 
   BIT TempIn = CarryIn;
+  BIT NextIn = CarryIn;
   BIT TempOut = FALSE;
 
-  ALU1(Input1[0], Input2[0], ALUControl[3], TempIn, Less, 
+  ALU1(Input1[0], Input2[0], Binvert, NextIn, Less, 
     ALUControl[0],ALUControl[1], &Result[0],&TempOut,&Set);
-    TempIn = TempOut;
+    NextIn = TempOut;
   for (int i = 1; i < 32; i++){
-    ALU1(Input1[i],Input2[i],ALUControl[3],TempIn,Less,
+    ALU1(Input1[i],Input2[i],Binvert,TempIn,Less,
     ALUControl[0],ALUControl[1],&Result[i],&TempOut,&Set);
-    TempIn = TempOut;
+    NextIn = TempOut;
   }
   Less = Set;
-  ALU1(Input1[0], Input2[0], ALUControl[3],ALUControl[2],Less, 
+  ALU1(Input1[0], Input2[0], Binvert,TempIn,Less, 
     ALUControl[0],ALUControl[1],&Result[0],&TempOut,&TempOut);  
 
   BIT gate16_1 = or_gate4(or_gate4(Result[0],Result[1],Result[2],Result[3]),
