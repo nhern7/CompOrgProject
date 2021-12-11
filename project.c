@@ -88,7 +88,7 @@ void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData);
 void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl);
 void adder1(BIT A, BIT B, BIT CarryIn, BIT* CarryOut, BIT* Sum);
 void ALU1(BIT A, BIT B, BIT LSB1, BIT LSB2, BIT Less,
-BIT MSB2, BIT MSB1, BIT * Result, BIT CarryIn, BIT * CarryOut, BIT * Set);
+BIT Op0, BIT Op1, BIT * Result, BIT * CarryOut, BIT * Set);
 void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result);
 void Data_Memory(BIT MemWrite, BIT MemRead, 
   BIT* Address, BIT* WriteData, BIT* ReadData);
@@ -389,6 +389,13 @@ void hex_to_binary_string(char* address, char address_to_write_to[32]){
       address_to_write_to[j-3] = '1';
       j -= 4;
     }
+    else if (address[i] == '1'){
+      address_to_write_to[j] = '0';
+      address_to_write_to[j-1] = '0';
+      address_to_write_to[j-2] = '0';
+      address_to_write_to[j-3] = '1';
+      j -= 4;
+    }    
     else if (address[i] == '2'){
       address_to_write_to[j] = '0';
       address_to_write_to[j-1] = '0';
