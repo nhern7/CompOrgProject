@@ -1388,12 +1388,10 @@ void Extend_Sign16(BIT* Input, BIT* Output)
   // TODO: Implement 16-bit to 32-bit sign extender
   // Copy Input to Output, then extend 16th Input bit to 17-32 bits in Output
   for (int i = 0; i < 16; i++){
-    Output[i] = TRUE;
+    Output[i] = Input[i];
   }
-  int j = 0;
   for (int i = 16; i < 32; i++){
-    Output[i] = Input[j];
-    j++;
+    Output[i] = multiplexor2(Input[15],FALSE,TRUE);
   }
 }
 
