@@ -1307,6 +1307,9 @@ void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl)
 
 void adder1(BIT A, BIT B, BIT CarryIn, BIT* CarryOut, BIT* Sum)
 {
+  // TODO: implement a 1-bit adder
+  // same adder from Lab 5 
+    
   BIT x0 = xor_gate(A, B);
   *Sum = xor_gate(CarryIn, x0);
   
@@ -1318,6 +1321,10 @@ void adder1(BIT A, BIT B, BIT CarryIn, BIT* CarryOut, BIT* Sum)
 void ALU1(BIT A, BIT B, BIT Binvert, BIT CarryIn, BIT Less,
 BIT Op0, BIT Op1, BIT * Result, BIT * CarryOut, BIT * Set)
 {
+  // TODO: implement a 1-bit ALU
+  // Note: this will need modifications from Lab 5 to account for 'slt'
+  // See slide 30 in Chapter-3d
+  
   BIT x0 = multiplexor2(Binvert, B, not_gate(B));
 
   BIT y0 = and_gate(A,x0);
@@ -1346,7 +1353,10 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
   BIT TempIn = CarryIn;
   BIT NextIn = CarryIn;
   BIT TempOut = FALSE;
-
+  
+  // See slide 31 in Chapter-3d
+  // ripple carry adder
+  
   ALU1(Input1[0], Input2[0], Binvert, NextIn, Less, 
     ALUControl[0],ALUControl[1], &Result[0],&TempOut,&Set);
     NextIn = TempOut;
@@ -1358,15 +1368,18 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
   Less = Set;
   ALU1(Input1[0], Input2[0], Binvert,TempIn,Less, 
     ALUControl[0],ALUControl[1],&Result[0],&TempOut,&TempOut);  
-
+// gate16_1 = first 16 bits of the result
   BIT gate16_1 = or_gate4(or_gate4(Result[0],Result[1],Result[2],Result[3]),
                         or_gate4(Result[4],Result[5],Result[6],Result[7]),
                         or_gate4(Result[8],Result[9],Result[10],Result[11]),
                         or_gate4(Result[12],Result[13],Result[14],Result[15]));
+  // gate16_2 = last 16 bits of the result
   BIT gate16_2 = or_gate4(or_gate4(Result[16],Result[17],Result[18],Result[19])
                         ,or_gate4(Result[20],Result[21],Result[22],Result[23]),
                         or_gate4(Result[24],Result[25],Result[26],Result[27]),
                         or_gate4(Result[28],Result[29],Result[30],Result[31]));
+  // zero = 0, if the input1 and input2 are the same
+  //else zero = 1
   *Zero = not_gate(or_gate(gate16_1,gate16_2));
 }
 
@@ -1433,11 +1446,7 @@ void updateState()
   BIT WriteData_datamemory[32] = {FALSE};
   BIT WriteData_registerfile[32] = {FALSE};
   BIT WriteRegister_var[5] = {FALSE};
-  BIT PC_plus1[32] = {FALSE};
-  BIT add_code[4] = {FALSE, TRUE, FALSE, FALSE};
-  BIT pc_plus_one[32] = {FALSE};
-  BIT new_pc[32] = {FALSE};
-  BIT JumpReg = FALSE;  //NEWLY DEFINED CONTROL SIGNAL
+
   //Fetch
   Instruction_Memory(PC, Instruction); 
 
@@ -1489,27 +1498,6 @@ void updateState()
   Write_Register(RegWrite, WriteRegister_var, WriteData_registerfile);
 
   //Update PC
-  //Update PC
-  //(note: dont need to shift left by 2)
-  //first get PC + 1
-  ALU(add_code, PC, ONE, &Zero, pc_plus_one);
-  //(select which pc value to use, pc+1 or the sign extended jump address)
-  multiplexor2_32( and_gate(Zero, Branch), pc_plus_one, Extended, new_pc );
-  //(also select which pc to use, between the output of the mux above or Read Data 1 for jr instruction)
-  //(set up JumpReg control bit)
-
-  //= 1 for jr, 0 otheriwse 
-  //METHOD: and together the whole opcode, then not it (because r type opcodes are just 0), then and
-  //that together with the funct so that the result is always true SPECIFICALLY for jr
-  BIT x3 = and_gate( and_gate4(Instruction[31], Instruction[30], Instruction[29], Instruction[28]), 
-    and_gate( Instruction[27], Instruction[26]) );
-  BIT x0 = not_gate(x3);
-  BIT x1 = and_gate4( not_gate(Instruction[0]), not_gate(Instruction[1]), not_gate(Instruction[2]), Instruction[3]  );
-  BIT x2 = and_gate(not_gate(Instruction[5]), not_gate(Instruction[4]) );
-  JumpReg = and_gate(x0, and_gate(x1,x2));   
-  
-  multiplexor2_32( JumpReg, new_pc, ReadData_registerfile1, new_pc );  
-  copy_bits(new_pc, PC);
 
 }
 
