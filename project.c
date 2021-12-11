@@ -1433,7 +1433,11 @@ void updateState()
   BIT WriteData_datamemory[32] = {FALSE};
   BIT WriteData_registerfile[32] = {FALSE};
   BIT WriteRegister_var[5] = {FALSE};
-
+  BIT PC_plus1[32] = {FALSE};
+  BIT add_code[4] = {FALSE, TRUE, FALSE, FALSE};
+  BIT pc_plus_one[32] = {FALSE};
+  BIT new_pc[32] = {FALSE};
+  BIT JumpReg = FALSE;  //NEWLY DEFINED CONTROL SIGNAL
   //Fetch
   Instruction_Memory(PC, Instruction); 
 
@@ -1485,6 +1489,27 @@ void updateState()
   Write_Register(RegWrite, WriteRegister_var, WriteData_registerfile);
 
   //Update PC
+  //Update PC
+  //(note: dont need to shift left by 2)
+  //first get PC + 1
+  ALU(add_code, PC, ONE, &Zero, pc_plus_one);
+  //(select which pc value to use, pc+1 or the sign extended jump address)
+  multiplexor2_32( and_gate(Zero, Branch), pc_plus_one, Extended, new_pc );
+  //(also select which pc to use, between the output of the mux above or Read Data 1 for jr instruction)
+  //(set up JumpReg control bit)
+
+  //= 1 for jr, 0 otheriwse 
+  //METHOD: and together the whole opcode, then not it (because r type opcodes are just 0), then and
+  //that together with the funct so that the result is always true SPECIFICALLY for jr
+  BIT x3 = and_gate( and_gate4(Instruction[31], Instruction[30], Instruction[29], Instruction[28]), 
+    and_gate( Instruction[27], Instruction[26]) );
+  BIT x0 = not_gate(x3);
+  BIT x1 = and_gate4( not_gate(Instruction[0]), not_gate(Instruction[1]), not_gate(Instruction[2]), Instruction[3]  );
+  BIT x2 = and_gate(not_gate(Instruction[5]), not_gate(Instruction[4]) );
+  JumpReg = and_gate(x0, and_gate(x1,x2));   
+  
+  multiplexor2_32( JumpReg, new_pc, ReadData_registerfile1, new_pc );  
+  copy_bits(new_pc, PC);
 
 }
 
