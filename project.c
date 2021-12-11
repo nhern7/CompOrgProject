@@ -1456,7 +1456,7 @@ void updateState()
   
   //Sign Extend
   for (int i = 0; i < 16; i++){
-    Short_extend[i] = instruction[i];
+    Short_extend[i] = Instruction[i];
   }
   Extend_Sign16(Short_extend, Extended);
   
