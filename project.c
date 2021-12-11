@@ -1374,7 +1374,6 @@ void Data_Memory(BIT MemWrite, BIT MemRead,
 
 void Extend_Sign16(BIT* Input, BIT* Output)
 {
-  // TODO: Implement 16-bit to 32-bit sign extender
   // Copy Input to Output, then extend 16th Input bit to 17-32 bits in Output
   for (int i = 0; i < 16; i++){
     Output[i] = TRUE;
@@ -1420,6 +1419,8 @@ void updateState()
   BIT WriteData_datamemory[32] = {FALSE};
   BIT WriteData_registerfile[32] = {FALSE};
   BIT WriteRegister_var[5] = {FALSE};
+  BIT sign_extended_address[32] = {FALSE};
+  BIT address[16] = {FALSE};
 
   //Fetch
   Instruction_Memory(PC, Instruction); 
@@ -1454,7 +1455,12 @@ void updateState()
   }
   //(process ALU)
   ALU_Control(ALUOp, funct, ALUControl_var);
-  ALU(ALUControl_var, ReadRegister1_registerfile, ReadRegister2_registerfile, &Zero, Result);
+  //(make sure to select which source to sue for 2nd operand in the ALU)
+   for(int i = 0; i < 16; i++){
+    address[i] = Instruction[i];
+  }
+  Extend_Sign16(address, sign_extended_address);
+  ALU(ALUControl_var, ReadRegister1_registerfile, multiplexor2_32(ALUSrc, ReadRegister2_registerfile, sign_extended_address), &Zero, Result);
 
   //Memory
   Data_Memory(MemWrite, MemRead, Result, WriteData_datamemory, ReadData_datamemory);
