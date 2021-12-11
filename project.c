@@ -538,7 +538,7 @@ void add_convert(char* input_line, BIT Instructions[32]){
 
   convert_to_binary(0, shamt, 5);   //shamt
   for (j = 6, i = 0; j < 11; j++,i++){
-    Instructions[i] = shamt[i];
+    Instructions[j] = shamt[i];
   } 
 
   //reg1 is essentially rd, reg2 is essentially rs, reg3 is essentially rt
@@ -585,7 +585,7 @@ void or_convert(char* input_line, BIT Instructions[32]){
 
   convert_to_binary(0, shamt, 5);   //shamt
   for (j = 6, i = 0; j < 11; j++,i++){
-    Instructions[i] = shamt[i];
+    Instructions[j] = shamt[i];
   } 
 
   //reg1 is essentially rd, reg2 is essentially rs, reg3 is essentially rt
@@ -632,7 +632,7 @@ void and_convert(char* input_line, BIT Instructions[32]){
 
   convert_to_binary(0, shamt, 5);   //shamt
   for (j = 6, i = 0; j < 11; j++,i++){
-    Instructions[i] = shamt[i];
+    Instructions[j] = shamt[i];
   } 
 
   //reg1 is essentially rd, reg2 is essentially rs, reg3 is essentially rt
@@ -679,7 +679,7 @@ void sub_convert(char* input_line, BIT Instructions[32]){
 
   convert_to_binary(0, shamt, 5);   //shamt
   for (j = 6, i = 0; j < 11; j++,i++){
-    Instructions[i] = shamt[i];
+    Instructions[j] = shamt[i];
   } 
 
   //reg1 is essentially rd, reg2 is essentially rs, reg3 is essentially rt
@@ -1525,7 +1525,9 @@ int main()
   // load program and run
   copy_bits(ZERO, PC);
   copy_bits(THIRTY_TWO, MEM_Register[29]);
-  
+  print_binary(MEM_Instruction[3]);
+  printf("\n");
+
   while (binary_to_integer(PC) < counter) {
     print_instruction();
     updateState();
