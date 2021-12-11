@@ -1123,10 +1123,10 @@ void Instruction_Memory(BIT* ReadAddress, BIT* Instruction)
     MEM_Instruction[26][i], MEM_Instruction[27][i], MEM_Instruction[28][i], MEM_Instruction[29][i], MEM_Instruction[30][i], 
     MEM_Instruction[31][i]);
   }*/
-  BIT Output[32] = {FALSE};
-  decoder5(ReadAddress, Output);
+  BIT address[32] = {FALSE};
+  decoder5(ReadAddress, address);
   for (int i = 0; i < 32; i++){
-    multiplexor2_32(Output[i],Instruction,MEM_Instruction[i],Instruction);
+    multiplexor2_32(address[i],Instruction,MEM_Instruction[i],Instruction);
   }
   /*
   thursday 6 to 8 pm office hours tips:
