@@ -1316,13 +1316,13 @@ void adder1(BIT A, BIT B, BIT CarryIn, BIT* CarryOut, BIT* Sum)
 void ALU1(BIT A, BIT B, BIT Binvert, BIT CarryIn, BIT Less,
 BIT Op0, BIT Op1, BIT * Result, BIT * CarryOut, BIT * Set)
 {
-  BIT x0 = multiplexor2(LSB1, B, not_gate(B));
+  BIT x0 = multiplexor2(Binvert, B, not_gate(B));
 
   BIT y0 = and_gate(A,x0);
   BIT y1 = or_gate(A,x0);
   
   BIT y2 = FALSE;
-  adder1(A, x0, LSB2, CarryOut, &y2);
+  adder1(A, x0, CarryIn, CarryOut, &y2);
   *Set = y2;
   BIT y3 = Less;
 
@@ -1337,7 +1337,6 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
   // Note: Can re-use prior implementations (but need new circuitry for zero)
   BIT Less = FALSE;
   BIT Set = FALSE;
-  BIT CarryIn;
   BIT CarryOut;
   BIT Binvert = ALUControl[2];
   BIT CarryIn = ALUControl[3];
