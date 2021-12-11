@@ -1326,7 +1326,7 @@ BIT Op0, BIT Op1, BIT * Result, BIT * CarryOut, BIT * Set)
   *Set = y2;
   BIT y3 = Less;
 
-  *Result = multiplexor4(LSB2,LSB1,y0,y1,y2,y3);
+  *Result = multiplexor4(Op0,Op1,y0,y1,y2,y3);
 }
 
 void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
@@ -1337,7 +1337,7 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
   // Note: Can re-use prior implementations (but need new circuitry for zero)
   BIT Less = FALSE;
   BIT Set = FALSE;
-  BIT CarryOut;
+  //BIT CarryOut;
   BIT Binvert = ALUControl[2];
   BIT CarryIn = ALUControl[3];
 
@@ -1349,7 +1349,7 @@ void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
     ALUControl[0],ALUControl[1], &Result[0],&TempOut,&Set);
     NextIn = TempOut;
   for (int i = 1; i < 32; i++){
-    ALU1(Input1[i],Input2[i],Binvert,TempIn,Less,
+    ALU1(Input1[i],Input2[i],Binvert,NextIn,Less,
     ALUControl[0],ALUControl[1],&Result[i],&TempOut,&Set);
     NextIn = TempOut;
   }
