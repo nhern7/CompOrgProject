@@ -1317,7 +1317,7 @@ BIT Op0, BIT Op1, BIT * Result, BIT * CarryOut, BIT * Set)
   BIT y1 = or_gate(A,x0);
   
   BIT y2 = FALSE;
-  adder1(A, x0, CarryIn, CarryOut, &y2);
+  adder1(A, x0, LSB2, CarryOut, &y2);
   *Set = y2;
   BIT y3 = Less;
 
