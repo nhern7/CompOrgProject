@@ -538,7 +538,7 @@ void add_convert(char* input_line, BIT Instructions[32]){
 
   convert_to_binary(0, shamt, 5);   //shamt
   for (j = 6, i = 0; j < 11; j++,i++){
-    Instructions[i] = shamt[i];
+    Instructions[j] = shamt[i];
   } 
 
   //reg1 is essentially rd, reg2 is essentially rs, reg3 is essentially rt
@@ -585,7 +585,7 @@ void or_convert(char* input_line, BIT Instructions[32]){
 
   convert_to_binary(0, shamt, 5);   //shamt
   for (j = 6, i = 0; j < 11; j++,i++){
-    Instructions[i] = shamt[i];
+    Instructions[j] = shamt[i];
   } 
 
   //reg1 is essentially rd, reg2 is essentially rs, reg3 is essentially rt
@@ -632,7 +632,7 @@ void and_convert(char* input_line, BIT Instructions[32]){
 
   convert_to_binary(0, shamt, 5);   //shamt
   for (j = 6, i = 0; j < 11; j++,i++){
-    Instructions[i] = shamt[i];
+    Instructions[j] = shamt[i];
   } 
 
   //reg1 is essentially rd, reg2 is essentially rs, reg3 is essentially rt
@@ -679,7 +679,7 @@ void sub_convert(char* input_line, BIT Instructions[32]){
 
   convert_to_binary(0, shamt, 5);   //shamt
   for (j = 6, i = 0; j < 11; j++,i++){
-    Instructions[i] = shamt[i];
+    Instructions[j] = shamt[i];
   } 
 
   //reg1 is essentially rd, reg2 is essentially rs, reg3 is essentially rt
@@ -965,7 +965,7 @@ void jr_convert(char* input_line, BIT Instructions[32]){
     Instructions[j] = funct[i];
   }       
 
-  for (j = 6, i = 0; j < 11; j++,i++){
+  for (j = 6, i = 0; j < 11; j++,i++){  //shamt
     Instructions[j] = FALSE;  
   } 
 
@@ -1498,7 +1498,26 @@ void updateState()
   Write_Register(RegWrite, WriteRegister_var, WriteData_registerfile);
 
   //Update PC
+  //(note: dont need to shift left by 2)
+  //first get PC + 1
+  ALU(add_code, PC, ONE, &Zero, pc_plus_one);
+  //(select which pc value to use, pc+1 or the sign extended jump address)
+  multiplexor2_32( and_gate(Zero, Branch), pc_plus_one, Extended, new_pc );
+  //(also select which pc to use, between the output of the mux above or Read Data 1 for jr instruction)
+  //(set up JumpReg control bit)
 
+  //= 1 for jr, 0 otheriwse 
+  //METHOD: and together the whole opcode, then not it (because r type opcodes are just 0), then and
+  //that together with the funct so that the result is always true SPECIFICALLY for jr
+  BIT x3 = and_gate( and_gate4(Instruction[31], Instruction[30], Instruction[29], Instruction[28]), 
+    and_gate( Instruction[27], Instruction[26]) );
+  BIT x0 = not_gate(x3);
+  BIT x1 = and_gate4( not_gate(Instruction[0]), not_gate(Instruction[1]), not_gate(Instruction[2]), Instruction[3]  );
+  BIT x2 = and_gate(not_gate(Instruction[5]), not_gate(Instruction[4]) );
+  JumpReg = and_gate(x0, and_gate(x1,x2));   
+
+  multiplexor2_32( JumpReg, new_pc, ReadData_registerfile1, new_pc );  
+  copy_bits(new_pc, PC);
 }
 
 
