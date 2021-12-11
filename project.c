@@ -1261,6 +1261,11 @@ void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
   // Input: one 5-bit register address, data to write, and control bit
   // Output: None, but will modify register file
   // Note: Implementation will again be similar to those above
+  BIT temp[32] = {FALSE};
+  decoder5(WriteRegister,temp);
+  for (int i = 0; i < 32; i++){
+    multiplexor2_32(and_gate(RegWrite,temp[i]), MEM_Register[i], WriteData, MEM_Register[i]);
+  }
 }
 
 void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl)
