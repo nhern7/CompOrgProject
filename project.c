@@ -1532,7 +1532,7 @@ int main()
   // parse instructions into binary format
   int counter = get_instructions(MEM_Instruction);
   updateState();
-  /*
+  
   // load program and run
   copy_bits(ZERO, PC);
   copy_bits(THIRTY_TWO, MEM_Register[29]);
@@ -1542,7 +1542,7 @@ int main()
     updateState();
     print_state();
   }
-  */
+  
 
   return 0;
 }
