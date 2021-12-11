@@ -389,13 +389,6 @@ void hex_to_binary_string(char* address, char address_to_write_to[32]){
       address_to_write_to[j-3] = '1';
       j -= 4;
     }
-    else if (address[i] == '1'){
-      address_to_write_to[j] = '0';
-      address_to_write_to[j-1] = '0';
-      address_to_write_to[j-2] = '0';
-      address_to_write_to[j-3] = '1';
-      j -= 4;
-    }    
     else if (address[i] == '2'){
       address_to_write_to[j] = '0';
       address_to_write_to[j-1] = '0';
