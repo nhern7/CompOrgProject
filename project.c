@@ -1402,6 +1402,7 @@ void updateState()
   BIT OpCode[6] = {FALSE}; 
   BIT funct[6] = {FALSE};
   BIT ALUControl_var[4] = {FALSE};
+  BIT ALU_2nd_operand[32] = {FALSE};
   BIT ReadRegister1_registerfile[5] = {FALSE};
   BIT ReadRegister2_registerfile[5] = {FALSE};
   BIT ReadData_registerfile1[5] = {FALSE};
@@ -1413,6 +1414,7 @@ void updateState()
   BIT WriteData_datamemory[32] = {FALSE};
   BIT WriteData_registerfile[32] = {FALSE};
   BIT WriteRegister_var[5] = {FALSE};
+  BIT PC_plus1[32] = {FALSE};
 
   //Fetch
   Instruction_Memory(PC, Instruction); 
@@ -1454,8 +1456,9 @@ void updateState()
   
   //(process ALU)
   ALU_Control(ALUOp, funct, ALUControl_var);
-  //(make sure to select which source to sue for 2nd operand in the ALU)
-  ALU(ALUControl_var, ReadRegister1_registerfile, multiplexor2_32(ALUSrc, ReadRegister2_registerfile, Extended), &Zero, Result);
+  //(make sure to select which source to use for 2nd operand in the ALU)
+  multiplexor2_32(ALUSrc, ReadData_registerfile2, Extended, ALU_2nd_operand);  
+  ALU(ALUControl_var, ReadRegister1_registerfile, ALU_2nd_operand, &Zero, Result);
 
   //Memory
   Data_Memory(MemWrite, MemRead, Result, WriteData_datamemory, ReadData_datamemory);
@@ -1466,6 +1469,8 @@ void updateState()
   Write_Register(RegWrite, WriteRegister_var, WriteData_registerfile);
 
   //Update PC
+  //(note: dont need to shift left by 2)
+  adder1(binary_to_integer(PC), 1, FALSE, FALSE, PC_plus1);
 
 }
 
