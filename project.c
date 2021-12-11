@@ -1424,19 +1424,19 @@ void updateState()
 
   Control(OpCode, &RegDst, &Jump, &Branch, &MemRead, &MemToReg,
                   ALUOp, &MemWrite, &ALUSrc, &RegWrite);
-  //Read register 1
+  //(register file) Read register 1
   for(int i = 0; i < 5; i++){
     ReadRegister1_registerfile[i] = Instruction[21 + i];
   }
 
-  //Read register 2
+  //(register file) Read register 2
   for(int i = 0; i < 5; i++){
     ReadRegister2_registerfile[i] = Instruction[16 + i];
   }
-  //set Read Data 1 and 2
+  //(register file) set Read Data 1 and 2
   Read_Register(ReadRegister1_registerfile, ReadRegister2_registerfile, ReadData_registerfile1, ReadData_registerfile2);
 
-  //Write register
+  //(register file) Write register
   for (int i = 0; i < 5; i++){
      WriteRegister_var[i] = multiplexor2(RegDst, ReadRegister2_registerfile[i], Instruction[11+i]);
   }
