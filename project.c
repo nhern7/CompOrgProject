@@ -1429,7 +1429,10 @@ void updateState()
   BIT WriteData_registerfile[32] = {FALSE};
   BIT WriteRegister_var[5] = {FALSE};
   BIT PC_plus1[32] = {FALSE};
-
+  BIT add_code[4] = {FALSE, TRUE, FALSE, FALSE};
+  BIT pc_plus_one[32] = {FALSE};
+  BIT new_pc[32] = {FALSE};
+  
   //Fetch
   Instruction_Memory(PC, Instruction); 
 
@@ -1484,8 +1487,11 @@ void updateState()
 
   //Update PC
   //(note: dont need to shift left by 2)
-  adder1(binary_to_integer(PC), 1, FALSE, FALSE, PC_plus1);
-
+  //first get PC + 1
+  ALU(add_code, PC, ONE, &Zero, pc_plus_one);
+  //(select which pc value to use, pc+1 or the sign extended jump address)
+  multiplexor2_32( and_gate(Zero, Branch), pc_plus_one, Extended, new_pc );
+  copy_bits(new_pc, PC);
 }
 
 
@@ -1499,8 +1505,7 @@ int main()
     
   // parse instructions into binary format
   int counter = get_instructions(MEM_Instruction);
-  updateState();
-  /*
+  
   // load program and run
   copy_bits(ZERO, PC);
   copy_bits(THIRTY_TWO, MEM_Register[29]);
@@ -1510,7 +1515,7 @@ int main()
     updateState();
     print_state();
   }
-  */
+  
 
   return 0;
 }
